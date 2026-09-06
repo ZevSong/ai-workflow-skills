@@ -1,0 +1,6 @@
+interface:
+  display_name: "多 Agent 任务拆分"
+  short_description: "明确调用后生成任务卡、具名会话提示词和流程图，支持全自动、半自动及人工执行计划"
+  default_prompt: "使用 $plan-agent-tasks，根据已确认需求检查缺口，按选定模式生成人工、全自动或半自动执行计划，交付使用相对路径的任务卡、具名会话的 Mermaid 流程图和每个会话的简短提示词；未指定模式时默认人工，任务较多时提示选择半自动。"
+policy:
+  allow_implicit_invocation: false
