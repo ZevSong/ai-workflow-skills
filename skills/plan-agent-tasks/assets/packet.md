@@ -24,12 +24,32 @@
 ## 执行模式与阶段
 
 - 执行模式及选择来源：{{execution_mode_and_selection_source}}
+- 资源档位及选择来源：{{resource_profile_and_selection_source}}
+- 速度策略及选择来源：{{speed_policy_and_selection_source}}
 - 执行载体及能力前置条件：{{session_carrier_and_required_runtime_capabilities}}
 - Main 会话名称：{{main_session_name}}
 - 并发容量、调度授权与停止点：{{concurrency_authorized_dispatch_scope_and_stop}}
 - 运行状态权威入口：{{runtime_state_repository_and_relative_path_or_existing_issue}}
 
 {{mode_specific_execution_summary_and_applicable_stage_table}}
+
+## 模型目录与逐会话绑定
+
+- 绑定就绪状态：{{ready_for_dispatch_or_model_binding_blocked}}
+- 目录来源、检查时间和宿主范围：{{catalog_source_checked_at_timezone_and_host_scope}}
+- 可用提供方、模型、推理强度与服务层：{{verified_catalog_capabilities}}
+- 计价依据与未知项：{{cost_basis_checked_at_and_unknowns}}
+- Main 启动时刷新条件：{{catalog_revalidation_and_refresh_conditions}}
+
+| 会话名称 | provider | model | reasoning_effort | service_tier / control / parameter | 选择理由 | 关键路径 |
+| --- | --- | --- | --- | --- | --- | --- |
+{{exact_per_session_primary_bindings_and_critical_path_rows}}
+
+| 会话名称 | 有序 fallbacks | escalation 触发条件 | dispatch retry 上限 | model escalation 上限 |
+| --- | --- | --- | --- | --- |
+{{per_session_fallback_escalation_and_finite_limit_rows}}
+
+创建或续接时使用准确值；不得省略模型参数以继承 Main。服务层控制明确写成 `per-session`、`host-global` 或 `unavailable`，并登记实际参数或 `none`。Fast 不可用时按策略使用标准服务层，不联动更换模型。
 
 ## 具体会话名册
 
@@ -46,7 +66,7 @@ flowchart TD
 {{named_session_nodes_mode_specific_dispatch_stage_gates_dependency_edges_and_repair_loops}}
 ```
 
-{{parallel_batches_dispatch_actor_session_reuse_stage_confirmations_and_project_human_gates}}
+{{parallel_batches_dispatch_actor_session_reuse_stage_confirmations_project_human_gates_and_fast_legend}}
 
 ## 执行与集成顺序
 
