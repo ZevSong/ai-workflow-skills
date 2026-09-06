@@ -8,7 +8,7 @@ Reusable workflows for AI agents, with task cards, examples, and explicit execut
 
 | Skill | 用途 | 当前验证范围 |
 | --- | --- | --- |
-| [plan-agent-tasks](skills/plan-agent-tasks/README.md) | 将已确认需求拆成可执行、可验收的任务卡，生成具名 Main / Worker / Reviewer 会话提示词和 Mermaid 流程图 | 见 [验证记录](skills/plan-agent-tasks/examples/validation.md)；自动调度未完成端到端验证 |
+| [plan-agent-tasks](skills/plan-agent-tasks/README.md) | 将已确认需求拆成可执行、可验收的任务卡，生成具名会话、逐会话模型/Fast 配置、提示词和 Mermaid 流程图 | 见 [验证记录](skills/plan-agent-tasks/examples/validation.md)；自动调度及逐会话模型/Fast 未完成端到端验证 |
 
 ## 快速开始
 

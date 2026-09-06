@@ -13,8 +13,14 @@
 - 实现责任：本任务 Worker；独立 Reviewer：{{review_role_and_card_repository_path}}
 - 前置条件：{{dependencies_and_material_availability}}
 - 操作授权和停止点：{{allowed_actions_and_exact_stop}}
+- `provider` / `model`：{{worker_provider_and_exact_model}}
+- `reasoning_effort` / `service_tier`：{{worker_reasoning_effort_and_service_tier}}
+- 服务层控制 / 实际参数：{{worker_service_tier_control_and_exact_parameter_or_none}}
+- 选择理由、有序 fallbacks 与 escalation 上限：{{worker_selection_reason_fallbacks_and_finite_limits}}
 
 只完成本卡工作及本任务授权修复，交付后按模式等待 Main 调度或用户手动交接；不自动启动 Reviewer 或其他会话。修复沿用本会话名称。
+
+启动时核对实际配置与本卡绑定。若 Main/用户无法显式设置准确模型，或实际值不在主选及有序回退中，停止执行并报告；不得靠隐式继承继续。Fast 不可用只影响服务层，不自行切换模型、提供方或推理强度。
 
 ## 必读与输入
 

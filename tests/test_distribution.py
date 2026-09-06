@@ -83,5 +83,80 @@ class DistributionTests(unittest.TestCase):
         self.assertTrue(any("must be a boolean" in error for error in validate_skill(self.skill)))
 
 
+class PlanAgentResourcePolicyTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.skill = Path(__file__).resolve().parents[1] / "skills" / "plan-agent-tasks"
+
+    def test_skill_links_model_and_speed_policy(self):
+        entry = (self.skill / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("references/model-and-speed-policies.md", entry)
+        self.assertIn("resource_profile", entry)
+        self.assertIn("speed_policy", entry)
+
+    def test_policy_defines_independent_axes_and_profiles(self):
+        policy = (self.skill / "references" / "model-and-speed-policies.md").read_text(encoding="utf-8")
+        for value in (
+            "execution_mode",
+            "resource_profile",
+            "speed_policy",
+            "fixed-main",
+            "economy",
+            "balanced",
+            "assured",
+            "maximum",
+            "standard",
+            "critical-path",
+            "fast-all",
+        ):
+            self.assertIn(value, policy)
+        self.assertIn("不得通过省略模型参数", policy)
+        self.assertIn("Fast 不可用", policy)
+
+    def test_templates_require_explicit_session_bindings(self):
+        packet = (self.skill / "assets" / "packet.md").read_text(encoding="utf-8")
+        main = (self.skill / "assets" / "main.md").read_text(encoding="utf-8")
+        prompts = (self.skill / "assets" / "prompts.md").read_text(encoding="utf-8")
+        combined = "\n".join((packet, main, prompts))
+        for value in (
+            "provider",
+            "model",
+            "reasoning_effort",
+            "service_tier",
+            "catalog",
+            "fallback",
+            "escalation",
+        ):
+            self.assertIn(value, combined)
+
+    def test_fast_fallback_cannot_change_model(self):
+        policy = (self.skill / "references" / "model-and-speed-policies.md").read_text(encoding="utf-8")
+        self.assertIn("回退到 `standard`", policy)
+        self.assertIn("不得因此更换模型", policy)
+        self.assertIn("提高推理强度或切换提供方", policy)
+
+    def test_fixed_main_is_explicit_and_maximum_keeps_standard_valid(self):
+        policy = (self.skill / "references" / "model-and-speed-policies.md").read_text(encoding="utf-8")
+        self.assertIn("所有新会话显式填写与 Main 相同", policy)
+        self.assertIn("这是有意绑定，不是省略参数后的继承", policy)
+        self.assertIn("`maximum + standard` 完全有效", policy)
+        self.assertIn("每个叶子任务安排两个 Reviewer", policy)
+        self.assertIn("对抗性边界/安全审查", policy)
+
+    def test_fast_all_requires_user_and_hidden_catalog_blocks_dispatch(self):
+        policy = (self.skill / "references" / "model-and-speed-policies.md").read_text(encoding="utf-8")
+        self.assertIn("`fast-all` 只能由用户明确选择", policy)
+        self.assertIn("将任务包标为 `MODEL_BINDING_BLOCKED`", policy)
+        self.assertIn("在此之前不得创建 Worker 或 Reviewer", policy)
+        self.assertIn("无需调用第二个 Skill", policy)
+
+    def test_service_tier_control_has_canonical_representation(self):
+        policy = (self.skill / "references" / "model-and-speed-policies.md").read_text(encoding="utf-8")
+        self.assertIn("service_tier_control: per-session | host-global | unavailable", policy)
+        self.assertIn("service_tier_parameter: <exact key/value passed, or none>", policy)
+        self.assertIn("`service_tier_control: unavailable`", policy)
+        self.assertIn("`service_tier_parameter: none`", policy)
+
+
 if __name__ == "__main__":
     unittest.main()
