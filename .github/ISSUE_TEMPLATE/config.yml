@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 私密报告安全漏洞 / Report a vulnerability
+    url: https://github.com/ZevSong/ai-workflow-skills/security/advisories/new
+    about: 请通过私密渠道报告漏洞，避免在公开 Issue 中发布敏感细节。

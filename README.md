@@ -70,6 +70,8 @@ python scripts/package_skill.py plan-agent-tasks
 
 欢迎提交真实使用反馈及可复现示例，参见 [贡献说明](CONTRIBUTING.md)。初期以仓库发布标签管理版本，发布记录按 Skill 列出变更。
 
+变更通过 PR 和 Linux / Windows CI 后合入 `main`；安全漏洞请参见 [安全报告说明](SECURITY.md)。
+
 后续候选方向包括仓库分析、设计文档生成和代码审查；收录前应先有可用 Skill 和验证案例。插件打包、更多 Agent 适配和自动评估按实际需求增加。
 
 ## 许可证
