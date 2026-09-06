@@ -32,6 +32,20 @@ python -m unittest discover -s tests -v
 
 Issue/PR 说明问题、预期与实际行为、修改原因、测试环境和未验证范围。对行为变更，附最小可复现输入；文字润色不要求运行整个 Agent 流程。
 
+## 分支与合并
+
+从最新的 `main` 创建任务分支，通过 PR 提交变更。`main` 的保护规则要求：
+
+- `validate (ubuntu-latest)` 和 `validate (windows-latest)` 两项 GitHub Actions 检查通过。
+- 分支与最新 `main` 保持同步，所有代码审查讨论已解决。
+- 使用 Squash 合并并保留线性历史；合并后自动删除任务分支。
+
+规则同样适用于管理员，不允许直接推送、强制推送或删除 `main`。目前只有一位维护者，暂不强制另一位 GitHub 用户批准；这不替代项目或任务要求的独立 Agent 审查。后续增加维护者时可提高审批门槛。
+
+仓库允许对单个 PR 启用 Auto-merge，等待保护条件满足后合并；启用此功能不会让所有 PR 自动合入。外部贡献者的 fork PR 工作流需要维护者批准运行。工作流令牌默认为只读，Actions 不可提交批准性 PR 审查。
+
+Dependabot 每周检查 Python 依赖和 GitHub Actions 版本并按需提交 PR，更新同样遵守分支保护。安全问题请按 [安全报告说明](SECURITY.md) 私密提交。
+
 ## 许可与版本
 
 贡献内容按本仓库 MIT 许可证提供；贡献者应拥有相应权利。引入第三方内容时说明来源与许可，保留必要声明；不能直接把不兼容内容重新标为 MIT。
