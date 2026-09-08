@@ -484,6 +484,57 @@ class ContractEdgeTests(unittest.TestCase):
             validate_state(state)
 
 
+class PlanReplacementReviewTests(unittest.TestCase):
+    def test_dependency_only_check_semantic_change_requires_owner_new_round(self):
+        state = make_state()
+        state['evidence']['EXTRA-EVIDENCE'] = evidence()
+        extra = deepcopy(state['checks']['DEMO-001-DELIVERY'])
+        extra.update(kind='test', result='PASS', evidence_ids=['EXTRA-EVIDENCE'])
+        state['checks']['EXTRA'] = extra
+        state['dependencies'][0]['required_check_ids'] = ['EXTRA']
+        validate_state(state)
+        plan = {key: deepcopy(state[key]) for key in (
+            'tasks', 'sessions', 'stages', 'checks', 'dependencies'
+        )}
+        plan['checks']['EXTRA']['kind'] = 'acceptance'
+        with self.assertRaisesRegex(ContractError, 'new task round: DEMO-001'):
+            apply_event(state, make_event('changed-gate', 0, [
+                {'type': 'plan.replace', 'plan': plan}
+            ]), NOW)
+        plan['tasks']['DEMO-001']['round'] = 2
+        updated = apply_event(state, make_event('changed-gate-new-round', 0, [
+            {'type': 'plan.replace', 'plan': plan}
+        ]), NOW)
+        self.assertEqual(updated['checks']['EXTRA']['result'], 'PASS')
+        self.assertEqual(updated['checks']['EXTRA']['round'], 1)
+        self.assertEqual(updated['tasks']['DEMO-001']['round'], 2)
+        self.assertEqual(state['checks']['EXTRA']['kind'], 'test')
+
+    def test_plan_replacement_and_evidence_put_accept_both_atomic_orders(self):
+        state = make_state()
+        plan = {key: deepcopy(state[key]) for key in (
+            'tasks', 'sessions', 'stages', 'checks', 'dependencies'
+        )}
+        extra = deepcopy(state['checks']['DEMO-001-DELIVERY'])
+        extra.update(kind='test', result='PASS', evidence_ids=['LATER'])
+        plan['checks']['EXTRA'] = extra
+        replacement = {'type': 'plan.replace', 'plan': plan}
+        put = {'type': 'evidence.put', 'id': 'LATER', 'evidence': evidence()}
+        outcomes = []
+        for ops in ([replacement, put], [put, replacement]):
+            with self.subTest(first=ops[0]['type']):
+                try:
+                    updated = apply_event(state, make_event('atomic-plan', 0, ops), NOW)
+                except ContractError as exc:
+                    self.fail(f'Valid complete transaction was rejected: {exc}')
+                self.assertEqual(updated['events'][0]['body']['ops'], ops)
+                outcomes.append({key: value for key, value in updated.items() if key != 'events'})
+        self.assertEqual(len(outcomes), 2, 'Both operation orders must be accepted')
+        self.assertEqual(outcomes[0], outcomes[1])
+        self.assertEqual(outcomes[0]['checks']['EXTRA']['evidence_ids'], ['LATER'])
+        self.assertEqual(state['evidence'], {})
+
+
 class PacketStageTests(unittest.TestCase):
     def setUp(self):
         self.state = make_state()

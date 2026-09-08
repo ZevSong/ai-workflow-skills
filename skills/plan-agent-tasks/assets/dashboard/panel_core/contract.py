@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from ._schema import (
     ContractError, DEFINITION_FIELDS, FIELDS, LIFECYCLES, PLAN_FIELDS,
-    _event_shape, _exists, _integer, _mapping, _object, _require, _time,
+    _event_shape, _exists, _ids, _integer, _mapping, _object, _require, _text, _time,
     ensure_done_allowed, validate_state,
 )
 
@@ -49,6 +49,9 @@ def _replace_plan(state, plan):
     # remain present (tasks may be cancelled) instead of silently disappearing.
     for collection in ('tasks', 'sessions', 'stages', 'checks'):
         _mapping(plan[collection], collection)
+        singular = {'tasks': 'task', 'sessions': 'session', 'stages': 'stage', 'checks': 'check'}[collection]
+        for identity, item in plan[collection].items():
+            _object(item, FIELDS[singular], f'{collection}.{identity}')
         for identity, old in state[collection].items():
             executed = {
                 'tasks': lambda: old['status'] not in ('pending', 'ready') or old['round'] > 1 or old['progress_at'] is not None,
@@ -58,14 +61,21 @@ def _replace_plan(state, plan):
             }[collection]()
             _require(not executed or identity in plan[collection], f'Cannot remove executed {collection}: {identity}')
     old_tasks, old_checks = state['tasks'], state['checks']
-    candidate = deepcopy(state)
-    candidate.update(deepcopy(plan))
-    candidate['packet']['plan_revision'] += 1
-    # Validate shapes/references before inspecting cross-object definitions.
-    for task in candidate['tasks'].values():
-        if type(task) is dict and task.get('status') == 'done':
-            task['status'] = 'pending'
-    validate_state(candidate)
+    # Only inspect local shapes here. Evidence and other references may be
+    # supplied by later operations; validate the whole state after the event.
+    for identity, task in plan['tasks'].items():
+        _integer(task['round'], f'{identity}.round', 1)
+        _ids(task['required_check_ids'], f'{identity}.required_check_ids', nonempty=True)
+    _require(type(plan['dependencies']) is list, 'dependencies: expected list')
+    for edge in plan['dependencies']:
+        _object(edge, FIELDS['dependency'], 'dependency')
+    semantic_changes = set()
+    for identity in set(old_checks) & set(plan['checks']):
+        before, after = old_checks[identity], plan['checks'][identity]
+        if any(before[key] != after[key] for key in ('task_id', 'kind', 'role_id', 'applicable', 'not_applicable_reason')):
+            for owner in (before['task_id'], after['task_id']):
+                _text(owner, 'check.task_id')
+                semantic_changes.add(owner)
     for identity in set(state['sessions']) & set(plan['sessions']):
         old, new = state['sessions'][identity], plan['sessions'][identity]
         for key in ('task_id', 'role', 'actual_name', 'actual_id', 'host_status', 'observed_at', 'round', 'actual_model', 'replaces'):
@@ -73,7 +83,7 @@ def _replace_plan(state, plan):
     for identity in set(old_tasks) & set(plan['tasks']):
         old, new = old_tasks[identity], plan['tasks'][identity]
         _require(new['round'] >= old['round'], f'Task round cannot move backwards: {identity}')
-        changed = any(old[key] != new[key] for key in ('required_check_ids', 'stage_id'))
+        changed = identity in semantic_changes or any(old[key] != new[key] for key in ('required_check_ids', 'stage_id'))
         changed |= [edge for edge in state['dependencies'] if edge['to'] == identity] != [edge for edge in plan['dependencies'] if edge['to'] == identity]
         for check_id in set(old['required_check_ids']) | set(new['required_check_ids']):
             before, after = old_checks.get(check_id), plan['checks'].get(check_id)
