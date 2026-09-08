@@ -11,6 +11,7 @@ from unittest.mock import patch
 from panel_fixtures import NOW, make_event, make_state
 
 from panel_core import render, store
+from panel_preview import ASSETS, example_state
 
 
 TEMPLATE = ('<!doctype html><meta charset="utf-8"><style><!--PANEL_STYLES--></style>'
@@ -111,6 +112,20 @@ class RenderTests(unittest.TestCase):
         self.assertTrue(caught.exception.snapshot_updated)
         html = (self.packet / "dashboard/index.html").read_text(encoding="utf-8")
         self.assertEqual(self.embedded(html), caught.exception.state)
+
+
+class ProductResourceTests(unittest.TestCase):
+    def test_simulated_example_exports_complete_standalone_snapshot(self):
+        state = example_state()
+        html = render.render_html(state, ASSETS / "resources")
+        embedded = json.loads(re.search(r'type="application/json">(.*?)</script>', html, re.S).group(1))
+        self.assertEqual(embedded, state)
+        self.assertEqual(len(state["tasks"]), 6)
+        self.assertEqual(len(state["history"]), 1)
+        self.assertEqual(state["tasks"]["DEMO-002"]["round"], 2)
+        self.assertEqual(state["checks"]["DEMO-002-REVIEW-A"]["round"], 1)
+        self.assertNotRegex(html, r'<(?:script|link)\b[^>]*(?:src|href)=')
+        self.assertNotRegex(html, r'<!--PANEL_(?:DATA|STYLES|SCRIPT)-->')
 
 
 if __name__ == "__main__":
