@@ -55,9 +55,9 @@
 
 在 `{{panel_event_directory}}` 写每次独立 JSON（event_id、expected_seq、occurred_at、observed_at、summary、ops），用 `python "{{panel_cli_path}}" publish --input "{{panel_update_event_path}}"` 提交。每个事件发送后 ID 和完整更新体不可改；响应不确定原文件重试。code 3 时先 status 并核对现有事件、状态和报告，协调后如有新事实用新 ID/新文件；不能只修改 expected_seq 盲重试。plan.replace 保留证据/已执行对象并提升受影响 round；packet.set 只切换阶段指针，不授予批准。
 
-CLI stdout 是 JSON、stderr 是诊断。code 2 为输入/契约错误；code 4 为来源/状态 I/O，state_published 可因写前/写后清理失败分别为 false/true；code 5 为预览或独立导出故障；code 6 表示状态已提交（state_published=true）但 HTML 导出有错，snapshot_updated 可能为 false，也可能已替换后清理失败为 true。读取真实 seq/snapshot_seq 与标记，必要时 status；修复后 export，不回滚或重复业务动作。status.snapshot_exists 仅说明文件存在，不证明当前快照新鲜。
+CLI stdout 是 JSON、stderr 是诊断。code 2 为输入/契约错误；code 4 为来源/状态 I/O，state_published 可因写前/写后清理失败分别为 false/true；code 5 为预览或独立导出故障；code 6 表示状态已提交（state_published=true）但 HTML 导出有错，snapshot_updated 可能为 false，也可能已替换后清理失败为 true。读取真实 seq、state_published 与 snapshot_updated；错误响应只有在返回 snapshot_seq 时才结合这些提交标记核对它，必要时 status；修复后 export，不回滚或重复业务动作。status.snapshot_exists 仅说明文件存在，不证明当前快照新鲜。
 
-按所选模式和既有授权执行；面板不创建角色、不批准阶段或合并。Worker 交付、各独立 Review、完成和运行结束分别登记，PASS 只属于对应检查维度。结束先 publish 实际结论，再 `python "{{panel_cli_path}}" export`，核对 snapshot_seq 与当前状态及离线 HTML，最后 `python "{{panel_cli_path}}" stop` 本包预览；保留状态、历史和最终 HTML。
+按所选模式和既有授权执行；面板不创建角色、不批准阶段或合并。Worker 交付、各独立 Review、完成和运行结束分别登记，PASS 只属于对应检查维度。结束先 publish 实际结论，再 `python "{{panel_cli_path}}" export`，核对成功响应的 seq、当前状态 seq 与离线 HTML 内嵌 seq 一致，最后 `python "{{panel_cli_path}}" stop` 本包预览；保留状态、历史和最终 HTML。
 
 ## 执行材料与模型恢复
 

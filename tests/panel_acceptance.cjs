@@ -74,10 +74,10 @@ async function closed(url) {
   await assert.rejects(fetch(url+'api/identity',{signal:AbortSignal.timeout(2000)}));
 }
 (async()=>{
+  fs.mkdirSync(scratch,{recursive:true});
   let browser;
   try { browser=await chromium.launch({headless:true}); }
   catch(error) { console.log('UNRUN: existing Chromium required: '+error.message);process.exitCode=77;return; }
-  fs.mkdirSync(scratch,{recursive:true});
   try {
     const a=prepare('SIM-A'),b=prepare('SIM-B');
     const starts=[];

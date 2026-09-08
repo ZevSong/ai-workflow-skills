@@ -81,7 +81,7 @@
 续接配置：保留 Main 已登记的 `provider={{main_provider}}`、`model={{main_model}}`、`reasoning_effort={{main_reasoning_effort}}`、`service_tier={{main_service_tier}}`；仅按卡片触发条件和上限升级。
 
 ```text
-继续「{{main_session_name}}」执行 {{parent_task_id}} 集成。定位仓库 {{main_card_repository}}，从仓库根读取 {{main_card_path}}，核对全部所需实现、独立审查、人类批准和依赖证据。{{main_mode_integration_instruction_preserving_dispatch_and_stage_boundaries}} 组织已授权集成及回归，业务语义修复交回 Worker，分别报告实际验证、合并与交付状态，到卡片停止点结束。面板仓库 {{panel_repository}}，CLI {{panel_cli_path}}，状态 {{panel_state_path}}，HTML {{panel_html_path}}；核对证据后由你唯一 publish 更新，交付/审查/批准/任务完成分别记录；结束 export 并核对 snapshot_seq 和离线 HTML，再 stop 本包预览，保留历史。
+继续「{{main_session_name}}」执行 {{parent_task_id}} 集成。定位仓库 {{main_card_repository}}，从仓库根读取 {{main_card_path}}，核对全部所需实现、独立审查、人类批准和依赖证据。{{main_mode_integration_instruction_preserving_dispatch_and_stage_boundaries}} 组织已授权集成及回归，业务语义修复交回 Worker，分别报告实际验证、合并与交付状态，到卡片停止点结束。面板仓库 {{panel_repository}}，CLI {{panel_cli_path}}，状态 {{panel_state_path}}，HTML {{panel_html_path}}；核对证据后由你唯一 publish 更新，交付/审查/批准/任务完成分别记录；结束 export，核对成功响应的 seq、当前状态 seq 与离线 HTML 内嵌 seq 一致，再 stop 本包预览，保留历史。
 ```
 
 ## {{main_session_name}}：确认进入 {{next_stage_id}} {{next_stage_name}}

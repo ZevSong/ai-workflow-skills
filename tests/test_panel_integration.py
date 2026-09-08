@@ -20,8 +20,12 @@ ASSETS = Path(__file__).resolve().parents[1] / "skills/plan-agent-tasks/assets/d
 class RelocatedArchiveTests(unittest.TestCase):
     def test_real_zip_dashboard_runs_without_maintenance_modules(self):
         # Maintenance imports are used only to create the ZIP, never by its child CLI.
-        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-        from package_skill import package_skill
+        previous_sys_path = sys.path[:]
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+            from package_skill import package_skill
+        finally:
+            sys.path[:] = previous_sys_path
         with tempfile.TemporaryDirectory(prefix="ZIP migration ") as scratch:
             root = Path(scratch)
             archive = package_skill(ASSETS.parents[1], root / "dist")

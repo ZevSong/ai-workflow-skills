@@ -46,14 +46,14 @@ python docs/task-packets/DEMO/dashboard/panel.py stop
 
 | 退出码 | Main 处理 |
 | --- | --- |
-| 0 | 读取 JSON 返回值；status.snapshot_exists 只表示文件存在，不能据此认定快照对应当前 seq |
+| 0 | 读取 JSON 返回值；export 成功时核对返回 seq、当前状态 seq 与离线 HTML 内嵌 seq；status.snapshot_exists 只表示文件存在，不能据此认定快照对应当前 seq |
 | 2 | 修正输入/参数/契约；不要绕过校验直接编辑状态 |
 | 3 | status、核对身份/事件/当前 seq 后协调冲突；不盲改 expected_seq，不抢另一个 Main 的写入权 |
 | 4 | 来源/状态 I/O；检查真实 state_published 与 seq，可能写前失败为 false，也可能已写入后清理失败为 true；先核对再恢复 |
 | 5 | 预览或独立 export 渲染故障；任务结论不因此改变，修复工具资源/环境后重试相应操作 |
-| 6 | 状态已提交，state_published=true；HTML 导出阶段失败，snapshot_updated 通常 false，也可能 HTML 已替换后清理失败而为 true，读取实际 snapshot_seq，不回滚或重复业务动作 |
+| 6 | 状态已提交，state_published=true；HTML 导出阶段失败，snapshot_updated 通常 false，也可能 HTML 已替换后清理失败而为 true；snapshot_seq 仅在已知 HTML 提交结果时条件返回，只在实际返回时结合提交标记核对，不回滚或重复业务动作 |
 
-code 4/6 不确定时用 status 核对状态；恢复资源后 export 修复 HTML，核对导出的 snapshot_seq 与当前状态。CLI 诊断在 stderr，stdout 是 JSON；不通过匹配错误文案推断写入是否发生。结束时先 publish 实际结论，再 export、核对离线快照和 seq、stop 本包预览，保留状态/历史/最终 HTML。预览仅绑定 127.0.0.1，Windows 隐藏后台窗口；无需外部 Orchestrator。
+code 4/6 不确定时用 status 核对状态；错误响应仅在返回 snapshot_seq 时结合 state_published 与 snapshot_updated 判断已知提交结果。恢复资源后 export 修复 HTML，核对成功响应的 seq、当前状态 seq 与离线 HTML 内嵌 seq 一致。CLI 诊断在 stderr，stdout 是 JSON；不通过匹配错误文案推断写入是否发生。结束时先 publish 实际结论，再 export、核对离线快照和 seq、stop 本包预览，保留状态/历史/最终 HTML。预览仅绑定 127.0.0.1，Windows 隐藏后台窗口；无需外部 Orchestrator。
 
 ## 角色报告与权限
 
