@@ -99,5 +99,6 @@ def main(argv: list[str] | None = None) -> int:
         if snapshot_updated and known_state is not None:
             result["snapshot_seq"] = known_state["seq"]
         print(str(exc), file=sys.stderr)
-    print(json.dumps(result, ensure_ascii=False, allow_nan=False))
+    # ASCII JSON survives redirected Windows legacy code pages without losing values.
+    print(json.dumps(result, ensure_ascii=True, allow_nan=False))
     return code

@@ -1,6 +1,7 @@
 """CLI/process integration against copied packets, including Windows Unicode paths."""
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -58,6 +59,38 @@ class IntegrationTests(unittest.TestCase):
         self.command("export", "--input", "unneeded.json", code=2)
         (self.packet / "runtime/state.json").write_text("broken")
         self.command("status", code=4)
+
+    def test_legacy_redirected_stdout_preserves_committed_json_and_error_flags(self):
+        self.state["source"]["reference"] = {
+            "repository": "演示仓库🚀", "path": "docs/task-packets/演示🚀/runtime/state.json",
+        }
+        plan = {key: deepcopy(self.state[key]) for key in ("packet", "source", "main", "tasks", "sessions", "stages", "checks", "evidence", "dependencies")}
+        environment = {**os.environ, "PYTHONUTF8": "0", "PYTHONIOENCODING": "cp1252:strict"}
+        # No -X utf8: capture raw redirected bytes from the actual copied entrypoint.
+        def run(*args):
+            return subprocess.run([sys.executable, str(self.entry), *args], cwd=self.temp.name,
+                                  capture_output=True, env=environment, timeout=15)
+        initialized = run("init", "--input", self.input(plan))
+        disk = json.loads((self.packet / "runtime/state.json").read_text(encoding="utf-8"))
+        self.assertEqual(disk["source"]["reference"], self.state["source"]["reference"])
+        self.assertTrue((self.packet / "dashboard/index.html").is_file())
+        self.assertEqual(initialized.returncode, 0, initialized.stderr.decode("cp1252"))
+        result = json.loads(initialized.stdout.decode("ascii"))
+        self.assertEqual(result["source"]["reference"], self.state["source"]["reference"])
+        self.assertTrue(result["state_published"])
+        self.assertTrue(result["snapshot_updated"])
+        event = make_event("LEGACY-1", 0, [{"type": "task.set", "id": "DEMO-001", "changes": {"status": "implementing", "progress": "进展🚀"}}])
+        (self.packet / "dashboard/resources/panel.css").unlink()
+        failed = run("publish", "--input", self.input(event))
+        self.assertEqual(failed.returncode, 6, failed.stderr.decode("cp1252"))
+        self.assertTrue(failed.stderr, "A restrictive code page must also retain diagnostics")
+        result = json.loads(failed.stdout.decode("ascii"))
+        self.assertTrue(result["state_published"])
+        self.assertFalse(result["snapshot_updated"])
+        self.assertEqual(result["seq"], 1)
+        self.assertEqual(result["source"]["reference"], self.state["source"]["reference"])
+        disk = json.loads((self.packet / "runtime/state.json").read_text(encoding="utf-8"))
+        self.assertEqual(disk["tasks"]["DEMO-001"]["progress"], "进展🚀")
 
     def test_publish_partial_export_failure_retry_and_conflict(self):
         self.init()
