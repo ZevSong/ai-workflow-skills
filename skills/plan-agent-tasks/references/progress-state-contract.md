@@ -6,13 +6,16 @@
 
 ```python
 class ContractError(ValueError): ...
+class ContractConflictError(ContractError): ...
 validate_state(state: dict) -> None
 initial_state(plan: dict, now: str) -> dict
 apply_event(state: dict, event: dict, received_at: str) -> dict
 ensure_done_allowed(state: dict, task_id: str) -> None
 ```
 
-调用方将 Skill 的 `assets/dashboard` 放入模块搜索路径后，从 `panel_core.contract` 导入以上五个接口。`_schema.py` 是私有校验实现，调用方不依赖其内部符号。
+调用方将 Skill 的 `assets/dashboard` 放入模块搜索路径后，从 `panel_core.contract` 导入以上接口。`_schema.py` 是私有校验实现，调用方不依赖其内部符号。
+
+`ContractConflictError` 仅用于同事件 ID 不同更新体和 expected_seq 不匹配；它是 `ContractError` 的子类。事件形状错误仍为普通 `ContractError`，且在判重/序号判断之前校验，便于 CLI 区分输入错误与冲突而不解析错误文字。
 
 - `validate_state` 接受完整快照，错误抛出 `ContractError`；不修改输入。
 - `initial_state` 接受下述九个计划字段，深复制后添加元数据。只接受 planned 初始化；已核对旧状态通过未来 import 命令直接调用 `validate_state`，不能用初始化伪造执行历史。

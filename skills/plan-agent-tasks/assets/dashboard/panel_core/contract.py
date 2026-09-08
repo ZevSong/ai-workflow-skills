@@ -9,9 +9,13 @@ from ._schema import (
 )
 
 __all__ = [
-    "ContractError", "validate_state", "initial_state", "apply_event",
+    "ContractError", "ContractConflictError", "validate_state", "initial_state", "apply_event",
     "ensure_done_allowed",
 ]
+
+
+class ContractConflictError(ContractError):
+    """A valid event conflicts with an accepted event or current sequence."""
 
 def initial_state(plan: dict, now: str) -> dict:
     """Construct a planned snapshot without inventing execution observations."""
@@ -111,9 +115,11 @@ def apply_event(state: dict, event: dict, received_at: str) -> dict:
     for snapshot in [state] + state['history']:
         for record in snapshot['events']:
             if record['event_id'] == event['event_id']:
-                _require(record['body'] == event, 'Event id already used with different body')
+                if record['body'] != event:
+                    raise ContractConflictError('Event id already used with different body')
                 return deepcopy(state)
-    _require(event['expected_seq'] == state['seq'], 'expected_seq conflict')
+    if event['expected_seq'] != state['seq']:
+        raise ContractConflictError('expected_seq conflict')
     _monotonic(state['observed_at'], event['observed_at'], 'Main observed_at')
     result = deepcopy(state)
     if any(op['type'] == 'run.start' for op in event['ops']):

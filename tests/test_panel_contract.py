@@ -41,6 +41,25 @@ def initial_plan() -> dict:
 
 
 class ContractTests(unittest.TestCase):
+    def test_conflicts_have_a_distinct_type_from_malformed_input(self):
+        from panel_core import contract
+        self.assertTrue(hasattr(contract, "ContractConflictError"), "Typed conflict exception missing")
+        state = make_state()
+        with self.assertRaises(contract.ContractConflictError):
+            apply_event(state, make_event("stale", 9, []), NOW)
+        event = make_event("first", 0, [])
+        state = apply_event(state, event, NOW)
+        changed = deepcopy(event)
+        changed["summary"] = "different body"
+        with self.assertRaises(contract.ContractConflictError):
+            apply_event(state, changed, NOW)
+        malformed = deepcopy(changed)
+        malformed["ops"] = "not operations"
+        with self.assertRaises(ContractError) as caught:
+            apply_event(state, malformed, NOW)
+        self.assertNotIsInstance(caught.exception, contract.ContractConflictError)
+        self.assertEqual(apply_event(state, event, NOW), state)
+
     def test_delivery_cannot_imply_done(self):
         state = make_state()
         event = make_event("premature-done", 0, [
