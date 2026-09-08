@@ -1,6 +1,6 @@
 # 模拟任务进展面板
 
-本目录全部内容均为 **模拟 Fixture**，没有真实 Worker、Reviewer、Main 会话或业务验收。示例中的实际会话 ID 也仅是模拟字符串。任何 `PASS` 只演示一个结构化检查的显示，不是产品执行、部署或发布证据。
+本目录的 JSON 和截图全部为 **模拟 Fixture**。示例中的实际会话 ID 也仅是模拟字符串；页面中的 `PASS` 只演示结构化检查，不是业务执行、部署或发布证据。[实测验收记录](verification.md) 分开记录模拟数据、真实工具/浏览器、迁移和本地真实角色的验证范围。
 
 [plan.json](plan.json) 是符合 v1 的 planned 初始化输入。[events.json](events.json) 按顺序模拟：停止旧轮次、明确开始第二轮、并行实施与双 Reviewer 观察、提高任务返修轮次。事件必须按顺序通过 `apply_event` 应用，不能把演示状态当成真实初始化计划。
 
@@ -60,4 +60,22 @@ Path("simulated-panel.html").write_text(
 
 任务图保持固定节点尺寸，窄视口中会局部裁切，属于有意的内部滚动视图。图下明确提示滚动、缩小和鼠标拖动；也可直接使用全部任务列表。全页截图会包含视口之外的文档内容，右侧桌面详情另有自身滚动区域。
 
-**范围限制：** HTTP 验证属于浏览器受控路由 Fixture；本任务没有验证后续 Task 4 的真实本地服务、CLI、证据读取边界、跨机器分发、真实角色调度或业务验收。仓库相对证据只展示完整定位信息，不承诺该文件可由面板服务读取；HTTP(S) 引用是远程链接。
+上述 2026-09-08 页面检查中的 HTTP 使用受控路由 Fixture。后续真实本地服务、CLI、证据入口和离线搬迁实测见 [Task 6 验收记录](verification.md)，两者的证据等级分别记录。跨仓库证据保留定位文本；包内候选入口仍由服务核对实际可读性；HTTP(S) 引用是远程链接。
+
+## 真实 CLI 与浏览器上的合成事件验收
+
+开发仓库提供 `tests/panel_acceptance.cjs`，需已有 Python 3.11+、Playwright 和 Chromium。它不安装依赖、不调用真实角色；复制固定 dashboard 后，通过真实 CLI、两个独立回环服务和实际浏览器执行完整合成链，日志及截图写入调用者指定的**新目录**。现有目录会被拒绝，避免覆盖证据。
+
+```sh
+node tests/panel_acceptance.cjs <新的临时证据目录>
+```
+
+可用 `PANEL_PYTHON` 指定已安装 Python；`PANEL_PLAYWRIGHT_MODULE` 与前述浏览器工具含义相同。默认 Python 为开发仓库 `.venv/Scripts/python.exe`；工具路径不同的环境须显式提供。缺少浏览器工具时输出 UNRUN、退出 77；没有据此验证其他宿主。脚本在 finally 停止自己登记的服务、核对端点关闭并关闭 Chromium。它不是独立 Skill 的运行依赖。
+
+2026-09-09 的新增截图均由合成事件在真实 Chromium 捕获：
+
+| 截图 | 实测场景 |
+| --- | --- |
+| [stale-main.png](screenshots/stale-main.png) | HTTP 已连接，Main 来源 181 秒前；任务仍在实施，不改为失败 |
+| [rework-live.png](screenshots/rework-live.png) | 第 2 轮返修，旧交付 PASS、审查 FAIL/PASS 均标为失效；完成仍为 0 / 1 |
+| [relocated-offline.png](screenshots/relocated-offline.png) | 停止服务后复制到中文及空格目录，浏览器网络已阻断，离线完成快照与证据定位可读 |
