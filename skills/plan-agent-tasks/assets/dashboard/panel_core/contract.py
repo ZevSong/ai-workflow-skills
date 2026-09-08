@@ -76,6 +76,9 @@ def _replace_plan(state, plan):
             for owner in (before['task_id'], after['task_id']):
                 _text(owner, 'check.task_id')
                 semantic_changes.add(owner)
+                if owner not in old_tasks and owner in plan['tasks']:
+                    _require(plan['tasks'][owner]['round'] > before['round'],
+                             f'Changed requirements need a new task round: {owner}')
     for identity in set(state['sessions']) & set(plan['sessions']):
         old, new = state['sessions'][identity], plan['sessions'][identity]
         for key in ('task_id', 'role', 'actual_name', 'actual_id', 'host_status', 'observed_at', 'round', 'actual_model', 'replaces'):

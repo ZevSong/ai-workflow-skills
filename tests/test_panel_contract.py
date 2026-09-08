@@ -485,6 +485,41 @@ class ContractEdgeTests(unittest.TestCase):
 
 
 class PlanReplacementReviewTests(unittest.TestCase):
+    def test_changed_check_moved_to_new_owner_requires_round_above_retained_result(self):
+        state = make_state()
+        state['evidence']['EXTRA-EVIDENCE'] = evidence()
+        extra = deepcopy(state['checks']['DEMO-001-DELIVERY'])
+        extra.update(kind='test', result='PASS', evidence_ids=['EXTRA-EVIDENCE'])
+        state['checks']['EXTRA'] = extra
+        state['dependencies'][0]['required_check_ids'] = ['EXTRA']
+        validate_state(state)
+        plan = {key: deepcopy(state[key]) for key in (
+            'tasks', 'sessions', 'stages', 'checks', 'dependencies'
+        )}
+        new_owner = deepcopy(state['tasks']['DEMO-002'])
+        new_owner.update(id='DEMO-003', session_ids=[], required_check_ids=['EXTRA'])
+        plan['tasks']['DEMO-003'] = new_owner
+        plan['tasks']['DEMO-001']['round'] = 2
+        plan['tasks']['DEMO-002']['round'] = 2
+        plan['checks']['EXTRA'].update(
+            task_id='DEMO-003', kind='acceptance', role_id=state['main']['logical_id']
+        )
+        plan['dependencies'][0]['from'] = 'DEMO-003'
+        with self.assertRaisesRegex(ContractError, 'new task round: DEMO-003'):
+            apply_event(state, make_event('new-owner-old-round', 0, [
+                {'type': 'plan.replace', 'plan': plan}
+            ]), NOW)
+        plan['tasks']['DEMO-003']['round'] = 2
+        updated = apply_event(state, make_event('new-owner-new-round', 0, [
+            {'type': 'plan.replace', 'plan': plan}
+        ]), NOW)
+        self.assertEqual(updated['checks']['EXTRA']['round'], 1)
+        self.assertEqual(updated['checks']['EXTRA']['result'], 'PASS')
+        self.assertEqual(updated['tasks']['DEMO-003']['round'], 2)
+        with self.assertRaisesRegex(ContractError, 'current-round'):
+            ensure_done_allowed(updated, 'DEMO-003')
+        self.assertEqual(state['checks']['EXTRA']['task_id'], 'DEMO-001')
+
     def test_dependency_only_check_semantic_change_requires_owner_new_round(self):
         state = make_state()
         state['evidence']['EXTRA-EVIDENCE'] = evidence()
