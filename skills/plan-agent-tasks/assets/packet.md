@@ -61,9 +61,11 @@
 
 本图表示计划执行关系，不表示已执行。实线表示正常执行顺序，虚线表示退回修复；同名会话在不同阶段出现表示续接。条件节点不是新会话，汇合必须满足全部所需前置条件。
 
+<!-- 生成时将下面 Mermaid 围栏内的 TEMPLATE 节点整行替换为 {{named_session_nodes_mode_specific_dispatch_stage_gates_dependency_edges_and_repair_loops}} 对应的具体节点、连线、门禁和回路；最终任务包不得保留 TEMPLATE 节点。 -->
+
 ```mermaid
 flowchart TD
-{{named_session_nodes_mode_specific_dispatch_stage_gates_dependency_edges_and_repair_loops}}
+  TEMPLATE["生成时替换为具名会话执行流程"]
 ```
 
 {{parallel_batches_dispatch_actor_session_reuse_stage_confirmations_project_human_gates_and_fast_legend}}

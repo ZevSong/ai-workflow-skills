@@ -64,6 +64,20 @@ class DistributionTests(unittest.TestCase):
         self.assertTrue(any("unresolved template" in error for error in errors))
         self.assertTrue(any("unclosed code fence" in error for error in errors))
 
+    def test_template_variable_inside_mermaid_fence_is_rejected(self):
+        assets = self.skill / "assets"
+        assets.mkdir()
+        (assets / "packet.md").write_text(
+            "# Packet\n\n```mermaid\nflowchart TD\n{{session_graph}}\n```\n",
+            encoding="utf-8",
+        )
+        self.assertTrue(
+            any(
+                "unresolved template variable inside Mermaid fence" in error
+                for error in validate_skill(self.skill)
+            )
+        )
+
     def test_existing_zip_is_not_overwritten(self):
         archive = package_skill(self.skill, self.root / "dist")
         content = archive.read_bytes()
