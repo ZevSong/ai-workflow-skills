@@ -49,6 +49,23 @@ def markdown_errors(path: Path, boundary: Path) -> list[str]:
     body, closed = markdown_body(text)
     if not closed:
         errors.append(f"{label}: unclosed code fence")
+    marker = ""
+    width = 0
+    mermaid = False
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        fence = FENCE.match(line)
+        if fence:
+            run, tail = fence.groups()
+            if not marker:
+                marker, width = run[0], len(run)
+                language = tail.strip().split(maxsplit=1)[0].casefold() if tail.strip() else ""
+                mermaid = language == "mermaid"
+            elif run[0] == marker and len(run) >= width and not tail.strip():
+                marker = ""
+                mermaid = False
+            continue
+        if marker and mermaid and re.search(r"\{\{[^\n]+?\}\}", line):
+            errors.append(f"{label}:{line_number}: unresolved template variable inside Mermaid fence")
     for match in LINK.finditer(body):
         target = match.group(1).strip("<>")
         # Generation templates may contain explicitly variable destinations.

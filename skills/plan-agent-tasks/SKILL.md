@@ -3,7 +3,7 @@ name: plan-agent-tasks
 description: Use when the user explicitly invokes plan-agent-tasks after discussing requirements and wants executable, independently verifiable task cards plus named Main, Worker, and Reviewer prompts with per-session model and speed plans. Also use to resume missing-requirement clarification within that active invocation.
 license: MIT
 metadata:
-  version: "0.2.0"
+  version: "0.2.1"
   execution-requirements: "Planning needs repository and current model-catalog access; automatic dispatch additionally needs host tools for explicit model selection, isolated session creation, continuation, and status tracking."
 ---
 
@@ -45,6 +45,7 @@ metadata:
 - 将 `execution_mode`、`resource_profile` 和 `speed_policy` 作为三个独立选择。资源档位支持 `fixed-main`、`economy`、`balanced`、`assured`、`maximum`；速度支持 `standard`、`critical-path`、`fast-all`。优先使用用户明确选择，未指定资源/速度时使用 `balanced + standard` 并说明；`fast-all` 只能由用户明确选择。执行模式不决定模型或 Fast，模型档位也不自动改变执行模式或速度。
 - 从当前宿主能力建立带来源和检查时间的模型目录快照，为 Main、每个 Worker 和每个 Reviewer 选择准确的 `provider`、`model`、`reasoning_effort` 和 `service_tier`，同时登记选择理由、有序回退、升级触发条件及有限次数。不得省略模型参数以继承 Main；第三方提供方和 Fast 只按当前接口明确支持的能力规划。目录不可见时按模型策略标记阻塞，禁止在准确绑定前派工。
 - 按真实 Task ID 和会话名称生成 Mermaid `flowchart TD`，展示启动顺序、可并行分支、前置条件汇合及修复/复审回路。标清新建或续接会话；同一 Main 在规划和集成阶段重复出现时仍是同一会话。流程图写入总任务卡，并在最终回复中展示同内容副本；规则见任务包约定。
+- 实例化流程图时将总卡模板中的 `TEMPLATE` 预览节点整行替换为具体 Mermaid 语句；最终任务包和回复不得保留该节点或未展开模板变量。可用 Mermaid 渲染器存在时实际渲染校验，不能只检查代码围栏。
 
 ## 3. 写入可移植任务包
 
