@@ -20,6 +20,45 @@ catch { console.log('UNRUN: Playwright unavailable; set PANEL_PLAYWRIGHT_MODULE 
     assert.match(await page.locator('#freshness').innerText(),/离线快照/,'Offline snapshot needs its own prominent freshness hint');
     assert.doesNotMatch(await page.locator('#freshness').innerText(),/状态未及时同步/);
     assert.match(await page.locator('#packet-meta').innerText(),/Main.*running/,'Registered Main status is absent');
+    if(process.env.PANEL_BROWSER_MODE==='review-1') {
+      const initial=await page.evaluate(()=>JSON.parse(document.getElementById('panel-data').textContent));
+      let responseState=initial;
+      await page.route('http://review.fixture/**',route=>route.fulfill(new URL(route.request().url()).pathname==='/api/status'?{contentType:'application/json',body:JSON.stringify({state:responseState,sync_error:null})}:{contentType:'text/html',body:html}));
+      await page.goto('http://review.fixture/');await page.waitForFunction(()=>document.querySelector('#connection').textContent.includes('已连接'));
+      await page.locator('#task-list [data-task-id="DEMO-002"]').click();
+      await page.locator('#task-filter').selectOption('review');await page.locator('#zoom-in').click();
+      const signature=()=>page.evaluate(()=>({title:document.title,heading:document.querySelector('#packet-title').textContent,meta:document.querySelector('#packet-meta').textContent,selection:document.querySelector('#task-detail').dataset.taskId,details:document.querySelector('#task-detail').textContent,counts:document.querySelector('#counts').textContent,filter:document.querySelector('#task-filter').value,transform:document.querySelector('#graph-content').getAttribute('transform'),events:document.querySelector('#events').textContent,source:document.querySelector('#source-reference').textContent}));
+      const before=await signature();
+      const cases=[['main null',s=>s.main=null],['source null',s=>s.source=null],['reference null',s=>s.source.reference=null],['task null',s=>s.tasks['DEMO-002']=null],['role IDs null',s=>s.tasks['DEMO-002'].session_ids=null],['missing check',s=>s.tasks['DEMO-002'].required_check_ids=['MISSING']],['session null',s=>s.sessions['DEMO-002-WORKER']=null],['bad model shape',s=>s.sessions['DEMO-002-WORKER'].planned_model=[]],['missing stage',s=>s.packet.stage_id='MISSING'],['stage approval IDs null',s=>s.stages.S1.approval_evidence_ids=null],['check null',s=>s.checks['DEMO-002-DELIVERY']=null],['check evidence IDs null',s=>s.checks['DEMO-002-DELIVERY'].evidence_ids=null],['evidence reference null',s=>s.evidence['SIM-E1'].reference=null],['dependency IDs null',s=>s.dependencies[0].required_check_ids=null],['event null',s=>s.events[0]=null],['event operations null',s=>s.events[1].body.ops=null],['history null entry',s=>s.history[0]=null],['history broken check',s=>s.history[0].checks['DEMO-002-DELIVERY']=null]];
+      for(const [name,mutate] of cases){
+        responseState=structuredClone(initial);responseState.seq++;responseState.packet.title='INVALID RESPONSE TITLE';mutate(responseState);
+        const rejected=await page.evaluate(()=>Panel.refreshOnce().then(()=>false,()=>true));
+        assert(rejected,'Malformed state accepted: '+name);assert.deepEqual(await signature(),before,'Malformed state damaged last good UI: '+name);
+        responseState=initial;await page.evaluate(()=>Panel.refreshOnce());assert.match(await page.locator('#connection').innerText(),/已连接/);assert.deepEqual(await signature(),before,'Original good state did not recover: '+name);
+      }
+      // A real renderer exception after some DOM writes must also roll back atomically.
+      const rollback=await page.evaluate(()=>{
+        const node=document.querySelector('#task-list button'),create=document.createElement;let fired=false;
+        document.createElement=function(tag,...rest){if(tag==='button'&&!fired){fired=true;throw new Error('Simulated render failure');}return create.call(this,tag,...rest);};
+        const candidate=JSON.parse(document.querySelector('#panel-data').textContent);candidate.seq++;candidate.packet.title='FAILED RENDER TITLE';let rejected=false;
+        try{Panel.renderState(candidate,Date.now());}catch{rejected=true;}finally{document.createElement=create;}
+        return {rejected,same:node===document.querySelector('#task-list button')};
+      });assert(rollback.rejected);assert(rollback.same,'Rollback lost original DOM nodes/listeners');assert.deepEqual(await signature(),before);
+      await page.locator('#task-list [data-task-id="DEMO-003"]').click();assert.equal(await page.locator('#task-detail').getAttribute('data-task-id'),'DEMO-003');
+      responseState=structuredClone(initial);responseState.seq++;responseState.packet.title='模拟 Fixture · 已恢复有效更新';await page.evaluate(()=>Panel.refreshOnce());assert.equal(await page.locator('#packet-title').innerText(),responseState.packet.title);
+      // Structured evidence only: one local reference despite repeated check/stage IDs.
+      const event=page.locator('#events [data-event-id="SIM-003"]');
+      assert.equal(await event.locator('[data-evidence-id="SIM-E1"]').count(),1,'Evidence-bearing event must render one deduplicated reference');
+      assert.match(await event.innerText(),/simulated-demo \/ reports\/simulated-result.md/);
+      // Event-time evidence.put is authoritative for the event presentation.
+      const eventIdentity=await page.evaluate(()=>{
+        const s=JSON.parse(document.querySelector('#panel-data').textContent);s.seq+=2;
+        s.evidence['SIM-E1']={title:'LATER DICTIONARY TITLE',reference:{url:'https://example.com/later'}};
+        const op=s.events.find(event=>event.event_id==='SIM-003').body.ops.find(op=>op.type==='evidence.put');op.evidence={title:'模拟证据 <img src=x onerror=alert(1)>',reference:{url:'https://example.com/event-time'}};
+        Panel.renderState(s,Date.now());const row=document.querySelector('#events [data-event-id="SIM-003"]');return {text:row.textContent,href:row.querySelector('a')?.href,images:row.querySelectorAll('img').length,links:row.querySelectorAll('a').length};
+      });assert.match(eventIdentity.text,/<img src=x onerror=alert\(1\)>/);assert.doesNotMatch(eventIdentity.text,/LATER DICTIONARY TITLE/);assert.equal(eventIdentity.href,'https://example.com/event-time');assert.equal(eventIdentity.images,0);assert.equal(eventIdentity.links,1);
+      assert.deepEqual(errors,[]);console.log(JSON.stringify({status:'PASS',mode:'review-1',browser:browser.version(),malformedCases:cases.length,checks:'malformed envelope retention/recovery, render exception rollback with original DOM listeners, event evidence deduplication, event-time identity, safe local and remote references'}));return;
+    }
     const result = await page.evaluate(() => {
       const s=JSON.parse(document.getElementById('panel-data').textContent), original=JSON.stringify(s);
       const p=Panel.projectState(s,Date.parse('2026-09-08T08:02:01Z'));

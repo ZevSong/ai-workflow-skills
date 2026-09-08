@@ -112,7 +112,22 @@
     byId('graph-content').querySelectorAll('[data-edge-index]').forEach(node=>{const e=graph.edges[Number(node.getAttribute('data-edge-index'))];node.textContent=e.kind==='approval'?'阶段批准':e.kind==='all'?'全部满足':e.requiredCheckIds.length?'当前轮检查 + 证据':'已完成';const path=node.previousSibling;path.querySelector('title').textContent=e.kind==='dependency'?dependencyLabel(state,{from:e.from,required_check_ids:e.requiredCheckIds}):node.textContent;});
   }
   function referenceText(reference) {return reference.url||reference.repository+' / '+reference.path;}
-  function evidenceNode(state,id) {const evidence=state.evidence[id];const node=el('div',undefined,'muted');if(!evidence){node.textContent=id+' · 未找到证据';return node;}node.append(el('span',evidence.title+' · '));if(evidence.reference.url&&/^https?:\/\//i.test(evidence.reference.url)){const link=el('a',evidence.reference.url);link.href=evidence.reference.url;link.target='_blank';link.rel='noopener noreferrer';node.append(link);}else node.append(el('span',referenceText(evidence.reference)));return node;}
+  function evidenceNode(state,id,evidence=state.evidence[id]) {const node=el('div',undefined,'muted');node.dataset.evidenceId=id;if(!evidence){node.textContent=id+' · 未找到证据';return node;}node.append(el('span',evidence.title+' · '));if(evidence.reference.url&&/^https?:\/\//i.test(evidence.reference.url)){const link=el('a',evidence.reference.url);link.href=evidence.reference.url;link.target='_blank';link.rel='noopener noreferrer';node.append(link);}else node.append(el('span',referenceText(evidence.reference)));return node;}
+  function eventEvidence(state,event) {
+    const ids=new Set(),recorded=new Map();
+    const add=values=>(values||[]).forEach(id=>ids.add(id));
+    event.body.ops.forEach(op=>{
+      if(op.type==='evidence.put'){ids.add(op.id);recorded.set(op.id,op.evidence);}
+      if(op.type==='check.set')add(op.changes.evidence_ids);
+      if(op.type==='stage.set')add(op.changes.approval_evidence_ids);
+      if(op.type==='plan.replace'||op.type==='run.start'){
+        Object.values(op.plan.checks).forEach(check=>add(check.evidence_ids));
+        Object.values(op.plan.stages).forEach(stage=>add(stage.approval_evidence_ids));
+        Object.entries(op.plan.evidence||{}).forEach(([id,evidence])=>{ids.add(id);recorded.set(id,evidence);});
+      }
+    });
+    return [...ids].map(id=>({id,evidence:recorded.get(id)||state.evidence[id]}));
+  }
   function section(parent,title){const node=el('section',undefined,'detail-section');node.append(el('h3',title));parent.append(node);return node;}
   function renderDetails(state) {
     const container=byId('task-detail'),scroll=byId('task-detail').parentElement.scrollTop;clear(container);const task=state.tasks[ui.selected];container.dataset.taskId=task?ui.selected:'';
@@ -131,7 +146,7 @@
     const active=byId('active-sessions');clear(active);
     projection.activeSessions.forEach(s=>{const row=el('div',undefined,'active-row'),info=el('div'),button=el('button',s.actual_name||s.planned_name);button.addEventListener('click',()=>selectTask(s.task_id));info.append(button,el('span',(s.role==='reviewer'?'Reviewer':'Worker')+' · 第 '+s.round+' 轮'+(!s.currentRound?' · 旧轮次':'')+' · 宿主 running','muted'));const timestamp=el('div',undefined,'muted');timestamp.dataset.sessionAge=s.id;row.append(info,timestamp);active.append(row);});if(!projection.activeSessions.length)active.append(el('p','没有带来源时间的 running 会话观察。','muted'));
     const list=byId('task-list');clear(list);sorted(state.tasks).forEach(id=>{const task=state.tasks[id],button=el('button',undefined,'task-list-row');button.dataset.taskId=id;button.append(el('span',id),el('span',task.title),el('span',labels[task.status]));button.addEventListener('click',()=>selectTask(id));list.append(button);});updateListSelection();
-    const events=byId('events'),scroll=events.scrollTop;clear(events);[...state.events].reverse().slice(0,30).forEach(event=>{const row=el('li'),meta=el('div','#'+event.seq,'muted'),body=el('div',event.summary);body.append(el('div','来源 '+event.occurred_at+' · 接收 '+event.received_at,'muted'));row.append(meta,body);events.append(row);});if(!state.events.length)events.append(el('li','本轮尚无事件。','muted'));events.scrollTop=scroll;
+    const events=byId('events'),scroll=events.scrollTop;clear(events);[...state.events].reverse().slice(0,30).forEach(event=>{const row=el('li'),meta=el('div','#'+event.seq,'muted'),body=el('div',event.summary);row.dataset.eventId=event.event_id;body.append(el('div','来源 '+event.occurred_at+' · 接收 '+event.received_at,'muted'));eventEvidence(state,event).forEach(item=>body.append(evidenceNode(state,item.id,item.evidence)));row.append(meta,body);events.append(row);});if(!state.events.length)events.append(el('li','本轮尚无事件。','muted'));events.scrollTop=scroll;
   }
   function freshness(state,nowMs) {
     const p=projectState(state,nowMs),delta=p.ageSeconds===null?'未获得核对时间':p.ageSeconds+' 秒前';
@@ -141,11 +156,60 @@
     byId('active-sessions').querySelectorAll('[data-session-age]').forEach(node=>{const session=state.sessions[node.dataset.sessionAge],seconds=age(session.observed_at,nowMs);node.textContent=time(session.observed_at)+' · '+seconds+' 秒前'+(seconds>120?'（观察已过期）':'');});
   }
   function validateIncoming(state) {
-    if(!state||state.schema_version!==1||!state.packet||!Number.isInteger(state.packet.run_number)||state.packet.run_number<1||!Number.isInteger(state.seq)||state.seq<0||!state.tasks||!state.sessions||!state.stages||!state.checks||!state.evidence||!Array.isArray(state.dependencies)||!Array.isArray(state.events)||!Array.isArray(state.history))throw new Error('状态格式不受支持');
+    validateView(state);
     if(current&&(state.packet.id!==current.packet.id||state.packet.run_number<current.packet.run_number||state.seq<current.seq||state.packet.plan_revision<1||(state.packet.run_number===current.packet.run_number&&state.packet.plan_revision<current.packet.plan_revision)))throw new Error('拒绝串包或倒退的状态');
   }
-  function displayState(nowMs) {
-    const state=ui.run==='current'?current:current.history.find(s=>String(s.packet.run_number)===ui.run);if(!state){ui.run='current';return displayState(nowMs);}displayed=state;
+  // Render-shape validation is deliberately separate from Python's execution contract.
+  // It covers every nested field/reference consumed below, including selectable history.
+  function validateView(state, archived=false) {
+    const require=(ok,label)=>{if(!ok)throw new Error('状态格式不受支持：'+label);};
+    const object=(value,label)=>require(value!==null&&typeof value==='object'&&!Array.isArray(value),label);
+    const text=(value,label,nullable=false)=>require(nullable&&value===null||typeof value==='string',label);
+    const integer=(value,label,min=1)=>require(Number.isInteger(value)&&value>=min,label);
+    const list=(value,label)=>{require(Array.isArray(value),label);value.forEach(id=>{text(id,label);require(id.length>0,label);});};
+    const timestamp=(value,label,nullable=true)=>require(nullable&&value===null||typeof value==='string'&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|\+00:00)$/.test(value)&&Number.isFinite(Date.parse(value)),label);
+    const exists=(id,collection,label,nullable=false)=>require(nullable&&id===null||typeof id==='string'&&Object.hasOwn(collection,id),label);
+    const enumeration=(value,values,label)=>require(values.includes(value),label);
+    const boolean=(value,label)=>require(typeof value==='boolean',label);
+    const reference=(value,label)=>{
+      object(value,label);
+      if(Object.hasOwn(value,'url')){text(value.url,label);let url;try{url=new URL(value.url);}catch{throw new Error('状态格式不受支持：'+label);}require(['http:','https:'].includes(url.protocol)&&!!url.hostname&&!url.username&&!url.password&&!/\s/.test(value.url),label);}
+      else{text(value.repository,label);text(value.path,label);require(value.repository.length>0&&!/^[\\/]|:/.test(value.path)&&value.path.replace(/\\/g,'/').split('/').every(part=>part&&!['.','..'].includes(part)),label);}
+    };
+    const evidence=(value,label)=>{object(value,label);text(value.title,label);reference(value.reference,label);};
+    const model=(value,label)=>{if(value===null)return;object(value,label);['provider','model','reasoning_effort','service_tier'].forEach(key=>text(value[key],label,true));};
+    object(state,'state');require(state.schema_version===1,'schema_version');integer(state.seq,'seq',0);timestamp(state.observed_at,'observed_at');timestamp(state.generated_at,'generated_at',false);
+    ['packet','main','source','tasks','sessions','stages','checks','evidence'].forEach(key=>object(state[key],key));
+    const p=state.packet;['id','title','mode','stop_condition'].forEach(key=>text(p[key],'packet.'+key));integer(p.run_number,'run_number');integer(p.plan_revision,'plan_revision');enumeration(p.lifecycle,['planned','running','waiting_user','blocked','finished'],'lifecycle');exists(p.stage_id,state.stages,'packet.stage_id',true);
+    ['logical_id','status'].forEach(key=>text(state.main[key],'main.'+key));text(state.main.session_id,'main.session_id',true);timestamp(state.main.observed_at,'main.observed_at');
+    reference(state.source.reference,'source.reference');boolean(state.source.available,'source.available');timestamp(state.source.checked_at,'source.checked_at');
+    Object.entries(state.evidence).forEach(([id,value])=>evidence(value,'evidence.'+id));
+    Object.entries(state.tasks).forEach(([id,t])=>{
+      object(t,'task.'+id);require(t.id===id,'task.id');['title','progress','next_action'].forEach(key=>text(t[key],'task.'+key));text(t.blocker,'task.blocker',true);timestamp(t.progress_at,'task.progress_at');integer(t.round,'task.round');require(Object.hasOwn(labels,t.status),'task.status');exists(t.stage_id,state.stages,'task.stage_id',true);
+      list(t.session_ids,'task.session_ids');t.session_ids.forEach(rid=>exists(rid,state.sessions,'task.session_ids'));list(t.required_check_ids,'task.required_check_ids');require(t.required_check_ids.length>0,'task.required_check_ids');t.required_check_ids.forEach(cid=>exists(cid,state.checks,'task.required_check_ids'));
+    });
+    Object.entries(state.sessions).forEach(([id,s])=>{
+      object(s,'session.'+id);exists(s.task_id,state.tasks,'session.task_id');enumeration(s.role,['worker','reviewer'],'session.role');text(s.planned_name,'session.planned_name');['actual_name','actual_id','replaces'].forEach(key=>text(s[key],'session.'+key,true));text(s.host_status,'session.host_status');timestamp(s.observed_at,'session.observed_at');integer(s.round,'session.round');model(s.planned_model,'session.planned_model');model(s.actual_model,'session.actual_model');
+    });
+    Object.entries(state.stages).forEach(([id,s])=>{object(s,'stage.'+id);text(s.title,'stage.title');list(s.task_ids,'stage.task_ids');s.task_ids.forEach(tid=>exists(tid,state.tasks,'stage.task_ids'));boolean(s.approved,'stage.approved');list(s.approval_evidence_ids,'stage.approval_evidence_ids');s.approval_evidence_ids.forEach(eid=>exists(eid,state.evidence,'stage.evidence'));});
+    Object.entries(state.checks).forEach(([id,c])=>{object(c,'check.'+id);exists(c.task_id,state.tasks,'check.task_id');text(c.kind,'check.kind');text(c.role_id,'check.role_id');integer(c.round,'check.round');boolean(c.applicable,'check.applicable');enumeration(c.result,c.applicable?['PASS','FAIL','UNRUN','BLOCKED']:[null],'check.result');text(c.not_applicable_reason,'check.not_applicable_reason',true);list(c.evidence_ids,'check.evidence_ids');c.evidence_ids.forEach(eid=>exists(eid,state.evidence,'check.evidence'));});
+    require(Array.isArray(state.dependencies),'dependencies');state.dependencies.forEach(d=>{object(d,'dependency');exists(d.from,state.tasks,'dependency.from');exists(d.to,state.tasks,'dependency.to');list(d.required_check_ids,'dependency.required_check_ids');d.required_check_ids.forEach(cid=>exists(cid,state.checks,'dependency.check'));});
+    require(Array.isArray(state.events),'events');state.events.forEach(event=>{
+      object(event,'event');text(event.event_id,'event.id');text(event.summary,'event.summary');integer(event.seq,'event.seq');timestamp(event.occurred_at,'event.occurred_at',false);timestamp(event.received_at,'event.received_at',false);object(event.body,'event.body');require(Array.isArray(event.body.ops),'event.body.ops');
+      event.body.ops.forEach(op=>{
+        object(op,'event.op');text(op.type,'event.op.type');
+        if(op.type==='evidence.put'){text(op.id,'event.evidence.id');evidence(op.evidence,'event.evidence');}
+        if(op.type==='check.set'||op.type==='stage.set'){object(op.changes,'event.changes');for(const key of ['evidence_ids','approval_evidence_ids'])if(Object.hasOwn(op.changes,key))list(op.changes[key],'event.'+key);}
+        if(op.type==='plan.replace'||op.type==='run.start'){
+          object(op.plan,'event.plan');for(const [collection,key] of [['checks','evidence_ids'],['stages','approval_evidence_ids']]){object(op.plan[collection],'event.plan.'+collection);Object.values(op.plan[collection]).forEach(value=>{object(value,'event.plan.entry');list(value[key],'event.plan.'+key);});}
+          if(Object.hasOwn(op.plan,'evidence')){object(op.plan.evidence,'event.plan.evidence');Object.values(op.plan.evidence).forEach(value=>evidence(value,'event.plan.evidence'));}
+        }
+      });
+    });
+    if(!archived){require(Array.isArray(state.history),'history');state.history.forEach(item=>{validateView(item,true);require(item.packet.id===p.id&&item.packet.run_number<p.run_number,'history.identity');});}
+  }
+  function displayState(nowMs, candidate=current) {
+    const state=ui.run==='current'?candidate:candidate.history.find(s=>String(s.packet.run_number)===ui.run);if(!state){ui.run='current';return displayState(nowMs,candidate);}displayed=state;
     if(ui.selected&&!state.tasks[ui.selected])ui.selected=null;
     const p=projectState(state,nowMs);byId('packet-title').textContent=state.packet.title;document.title=state.packet.title+' · 任务进展';byId('packet-meta').textContent=state.packet.id+' · '+state.packet.mode+' · Main '+state.main.status+' · Run '+state.packet.run_number+' · Plan '+state.packet.plan_revision+' · seq '+state.seq+' · 当前阶段 '+(state.packet.stage_id?state.packet.stage_id+' '+state.stages[state.packet.stage_id].title:'未指定');
     byId('history-label').textContent=ui.run==='current'?'当前轮次':'历史轮次 · 只读快照';const counts=byId('counts');clear(counts);[['done','已完成 / 有效任务'],['active','实施 / 返修 / 验证'],['review','独立审查'],['waiting','等待确认 / 批准'],['blocked','受阻'],['pending','未开始 / 就绪'],...(p.counts.failed?[['failed','失败']]:[]),...(p.counts.cancelled?[['cancelled','已取消 · 不计分母']]:[])].forEach(([key,label])=>{const node=el('div',undefined,'count');node.append(el('strong',key==='done'?p.counts.done+' / '+p.counts.total:String(p.counts[key])),el('span',label));counts.append(node);});
@@ -155,8 +219,27 @@
   function renderState(state,nowMs=Date.now()) {
     validateIncoming(state);
     if(current&&state.seq===current.seq){if(state.packet.run_number!==current.packet.run_number)throw new Error('相同序号不能改变执行轮次');freshness(displayed,nowMs);return false;}
-    current=JSON.parse(JSON.stringify(state));const selector=byId('run-select');clear(selector);selector.append(new Option('当前 · 第 '+current.packet.run_number+' 轮','current'));[...current.history].reverse().forEach(item=>selector.append(new Option('历史 · 第 '+item.packet.run_number+' 轮',String(item.packet.run_number))));if(ui.run!=='current'&&!current.history.some(item=>String(item.packet.run_number)===ui.run))ui.run='current';selector.value=ui.run;
-    const scroller=byId('graph-scroll'),left=scroller.scrollLeft,top=scroller.scrollTop;displayState(nowMs);scroller.scrollLeft=left;scroller.scrollTop=top;return true;
+    const candidate=JSON.parse(JSON.stringify(state)),previous={displayed,graph,ui:{...ui}},restore=captureDisplay();
+    try{
+      const selector=byId('run-select');clear(selector);selector.append(new Option('当前 · 第 '+candidate.packet.run_number+' 轮','current'));[...candidate.history].reverse().forEach(item=>selector.append(new Option('历史 · 第 '+item.packet.run_number+' 轮',String(item.packet.run_number))));if(ui.run!=='current'&&!candidate.history.some(item=>String(item.packet.run_number)===ui.run))ui.run='current';selector.value=ui.run;
+      const scroller=byId('graph-scroll'),left=scroller.scrollLeft,top=scroller.scrollTop;displayState(nowMs,candidate);scroller.scrollLeft=left;scroller.scrollTop=top;
+      current=candidate;return true;
+    }catch(error){displayed=previous.displayed;graph=previous.graph;Object.assign(ui,previous.ui);restore();throw error;}
+  }
+  function captureDisplay() {
+    const title=document.title,active=document.activeElement,position=[window.scrollX,window.scrollY],records=[];
+    function visit(node){
+      if(node.nodeType===Node.TEXT_NODE){records.push({node,data:node.data});return;}
+      if(node.nodeType!==Node.ELEMENT_NODE)return;
+      records.push({node,children:[...node.childNodes],attributes:[...node.attributes].map(a=>[a.name,a.value]),value:node instanceof HTMLSelectElement?node.value:null,scroll:[node.scrollLeft,node.scrollTop]});
+      [...node.childNodes].forEach(visit);
+    }
+    document.querySelectorAll('.page-header, main').forEach(visit);
+    return ()=>{
+      records.forEach(saved=>{const node=saved.node;if(Object.hasOwn(saved,'data')){node.data=saved.data;return;}[...node.attributes].forEach(a=>node.removeAttribute(a.name));saved.attributes.forEach(([key,value])=>node.setAttribute(key,value));node.replaceChildren(...saved.children);});
+      records.forEach(saved=>{if(saved.scroll){if(saved.value!==null)saved.node.value=saved.value;[saved.node.scrollLeft,saved.node.scrollTop]=saved.scroll;}});
+      document.title=title;if(active?.isConnected)active.focus({preventScroll:true});window.scrollTo(...position);
+    };
   }
   function refreshOnce() {
     if(location.protocol==='file:')return Promise.resolve(false);
