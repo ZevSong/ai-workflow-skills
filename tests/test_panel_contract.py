@@ -453,7 +453,7 @@ class ContractEdgeTests(unittest.TestCase):
 
     def test_unknown_operation_and_wrong_stage_membership_are_rejected(self):
         with self.assertRaises(ContractError):
-            apply_event(make_state(), make_event('unknown', 0, [{'type': 'packet.set', 'changes': {}}]), NOW)
+            apply_event(make_state(), make_event('unknown', 0, [{'type': 'unknown.set', 'changes': {}}]), NOW)
         state = make_state()
         state['tasks']['DEMO-001']['stage_id'] = 'MISSING'
         with self.assertRaises(ContractError):
@@ -482,6 +482,59 @@ class ContractEdgeTests(unittest.TestCase):
         state['history'].append(archive)
         with self.assertRaises(ContractError):
             validate_state(state)
+
+
+class PacketStageTests(unittest.TestCase):
+    def setUp(self):
+        self.state = make_state()
+        self.state['stages'] = {
+            identity: {'title': identity, 'task_ids': [], 'status': 'pending',
+                       'approved': False, 'approval_evidence_ids': []}
+            for identity in ('S1', 'S2')
+        }
+        self.state['packet']['stage_id'] = 'S1'
+
+    def test_packet_set_transitions_between_registered_stages_without_approval(self):
+        try:
+            updated = apply_event(self.state, make_event('stage-transition', 0, [
+                {'type': 'packet.set', 'changes': {'stage_id': 'S2'}}
+            ]), NOW)
+        except ContractError as exc:
+            self.fail(f'Registered stage transition was rejected: {exc}')
+        self.assertEqual(updated['packet']['stage_id'], 'S2')
+        self.assertEqual(updated['stages'], self.state['stages'])
+        self.assertEqual(updated['packet']['lifecycle'], 'planned')
+        self.assertEqual(self.state['packet']['stage_id'], 'S1')
+
+    def test_packet_set_clears_current_stage(self):
+        try:
+            updated = apply_event(self.state, make_event('clear-stage', 0, [
+                {'type': 'packet.set', 'changes': {'stage_id': None}}
+            ]), NOW)
+        except ContractError as exc:
+            self.fail(f'Clearing stage was rejected: {exc}')
+        self.assertIsNone(updated['packet']['stage_id'])
+
+    def test_invalid_stage_rejects_entire_event(self):
+        original = deepcopy(self.state)
+        with self.assertRaisesRegex(ContractError, 'unknown reference MISSING'):
+            apply_event(self.state, make_event('invalid-stage', 0, [
+                {'type': 'task.set', 'id': 'DEMO-001', 'changes': {'progress': 'Changed'}},
+                {'type': 'packet.set', 'changes': {'stage_id': 'MISSING'}},
+            ]), NOW)
+        self.assertEqual(self.state, original)
+
+    def test_packet_set_cannot_change_metadata_or_authority(self):
+        for field, value in {
+            'id': 'OTHER', 'title': 'Other title', 'mode': 'auto',
+            'lifecycle': 'finished', 'run_number': 2, 'plan_revision': 2,
+            'stop_condition': 'Other condition', 'source': {},
+        }.items():
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ContractError, 'Unknown field'):
+                    apply_event(self.state, make_event('immutable', 0, [
+                        {'type': 'packet.set', 'changes': {field: value}}
+                    ]), NOW)
 
 
 if __name__ == "__main__":

@@ -330,8 +330,8 @@ def _event_shape(event):
             _object(op, ('type', 'id', 'evidence'), kind)
             _text(op['id'], kind + '.id')
             _object(op['evidence'], FIELDS['evidence'], kind)
-        elif kind in ('task.set', 'session.set', 'stage.set', 'check.set', 'main.set', 'source.set'):
-            fields = ['type', 'changes'] + ([] if kind in ('main.set', 'source.set') else ['id'])
+        elif kind in ('task.set', 'session.set', 'stage.set', 'check.set', 'main.set', 'source.set', 'packet.set'):
+            fields = ['type', 'changes'] + ([] if kind in ('main.set', 'source.set', 'packet.set') else ['id'])
             _object(op, fields + (['reason'] if kind == 'task.set' else []), kind, partial=True)
             _require(set(fields) <= set(op), f'Missing operation field: {kind}')
             if 'id' in op:
@@ -346,6 +346,7 @@ def _event_shape(event):
                 'check': {'task_id', 'kind', 'role_id'},
                 'main': {'logical_id'},
                 'source': {'mode', 'reference'},
+                'packet': set(FIELDS['packet']) - {'stage_id'},
             }[entity]
             _object(op['changes'], set(FIELDS[entity]) - immutable, kind + '.changes', partial=True)
         else:

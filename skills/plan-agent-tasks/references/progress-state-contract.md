@@ -46,7 +46,7 @@ ensure_done_allowed(state: dict, task_id: str) -> None
 | `source` | `mode` 为 `local/projection`；`reference` 见引用格式；`available` 为布尔值；`checked_at` 为 UTC 时间或 null |
 | `main` | `logical_id` 为非空字符串且不与角色 ID 重复；`session_id` 为真实 ID 或 null；`status` 为 `planned/running/waiting_user/blocked/finished/stopped/unknown`；`observed_at` 为 UTC 时间或 null |
 
-`main.set` 设置五种 lifecycle 同名状态时同步 `packet.lifecycle`；设置 `stopped` 时将 lifecycle 设为 `blocked`，表示明确停止，允许下一次显式 `run.start`。`unknown` 不改变已知 lifecycle。面板不能因此创建任何会话。阶段指针在初始化/导入时登记，计划替换须保持其引用有效。
+`main.set` 设置五种 lifecycle 同名状态时同步 `packet.lifecycle`；设置 `stopped` 时将 lifecycle 设为 `blocked`，表示明确停止，允许下一次显式 `run.start`。`unknown` 不改变已知 lifecycle。面板不能因此创建任何会话。阶段指针在初始化/导入时登记，也可用 `packet.set` 切换到已登记阶段或清为 null；它只更新当前阶段展示，不改变任何阶段批准或执行授权，计划替换须保持其引用有效。
 
 ### Task, session, stage, check, evidence
 
@@ -114,6 +114,7 @@ Task.status 为 `pending/ready/implementing/fixing/validating/awaiting_review/re
 | `evidence.put` | `type/id/evidence`；可登记新证据，已有 ID 仅接受完全相同内容，防止覆盖历史定位 |
 | `main.set` | `type/changes`；不可改 logical_id；观察时间不能倒退；状态到 lifecycle 映射见前文 |
 | `source.set` | `type/changes`；只允许 available、checked_at，核对时间不能倒退 |
+| `packet.set` | `type/changes`；changes 只允许 stage_id，值为已登记阶段 ID 或 null；只更新当前阶段展示，不改变批准/授权。不可改身份、标题、模式、lifecycle、运行号、计划修订号、停止条件或来源 |
 | `plan.replace` | `type/plan`；plan 必须完整包含 tasks/sessions/stages/checks/dependencies 五项；规则见下文 |
 | `run.start` | `type/plan`；plan 为完整初始化计划，必须单独占用一个事件 |
 

@@ -98,7 +98,7 @@
 }
 ```
 
-允许的操作为 `task.set`、`session.set`、`stage.set`、`check.set`、`evidence.put`、`main.set`、`source.set`、`plan.replace`、`run.start`。前五种按上述对象的已知字段更新；其余分别更新 Main、来源、完整计划或开始明确的新一轮执行。不存在的任务/角色/检查只能通过 `plan.replace` 登记，不能被拼写错误隐式创建。
+允许的操作为 `task.set`、`session.set`、`stage.set`、`check.set`、`evidence.put`、`main.set`、`source.set`、`packet.set`、`plan.replace`、`run.start`。前五种按上述对象的已知字段更新；其余分别更新 Main、来源、当前阶段指针、完整计划或开始明确的新一轮执行。`packet.set` 的 changes 只允许 stage_id，值为已登记阶段 ID 或 null，仅更新当前阶段展示，不改变批准或执行授权；身份、模式、lifecycle、运行号、计划修订号及来源均不可通过该操作修改。不存在的任务/角色/检查只能通过 `plan.replace` 登记，不能被拼写错误隐式创建。
 
 `task.set` 不允许改身份或完成要求；改轮次必须增加并在事件中附原因。`source.set` 只更新可用性和核对时间，不切换权威模式或目标位置。`plan.replace` 一次替换任务、角色、阶段、检查、依赖定义，增加 `plan_revision`，保留已有运行证据；移除已经执行的对象改为取消或历史记录，不能静默删除。要求已变化的受影响结果须重新核对。`run.start` 只在终止或显式停止后使用，归档旧轮次，再按完整初始化数据创建下一轮；恢复不调用它。
 

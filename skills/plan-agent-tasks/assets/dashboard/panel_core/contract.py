@@ -132,7 +132,7 @@ def apply_event(state: dict, event: dict, received_at: str) -> dict:
             result['evidence'][op['id']] = deepcopy(op['evidence'])
         else:
             entity = kind.split('.')[0]
-            if entity in ('main', 'source'):
+            if entity in ('main', 'source', 'packet'):
                 target = result[entity]
             else:
                 collection = {'task': 'tasks', 'session': 'sessions', 'stage': 'stages', 'check': 'checks'}[entity]
