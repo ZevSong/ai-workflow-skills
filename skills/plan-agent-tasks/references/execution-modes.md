@@ -22,6 +22,20 @@
 
 人工模式允许用户启动的 Worker/Reviewer 完成本卡已授权工作；不是每个编码或测试步骤都询问。所有模式下，Worker/Reviewer 完成后写交付材料，由 Main 核对；它们不自行启动下一个角色、扩大委派或越过阶段界限。自动调度权集中在 Main。
 
+## 三种模式的面板入口
+
+所有模式遵循 [面板接入](progress-panel.md)：生成材料时完整复制 dashboard、初始化 planned 数据与离线 HTML，不启动服务/会话。模式只在用户发送已生成的 Main 提示词后生效。每个生成提示词都实例化确切仓库、CLI、HTML、状态路径，不能只让 Main “找到面板”。下面以虚构 demo 仓库的 DEMO 包说明三种 Main 启动授权的组合；正式生成时只输出所选模式，并填入该任务真实路径、会话名和模型配置。
+
+| 模式 | 生成到 Main 提示词的具体操作与授权 |
+| --- | --- |
+| auto | 从仓库 demo 根读 docs/task-packets/DEMO/main.md；用 docs/task-packets/DEMO/dashboard/panel.py status 核对已有 docs/task-packets/DEMO/runtime/state.json，publish 真实 Main 身份后 start --open 并验证入口，离线 HTML 为 docs/task-packets/DEMO/dashboard/index.html；按总卡准确模型绑定自动创建/续接命名会话，在授权范围调度至停止点 |
+| semi-auto | 从仓库 demo 根读 docs/task-packets/DEMO/main.md；用 docs/task-packets/DEMO/dashboard/panel.py status 核对已有 docs/task-packets/DEMO/runtime/state.json，publish 真实 Main 身份后 start --open 并验证入口，离线 HTML 为 docs/task-packets/DEMO/dashboard/index.html；仅在本次明确首阶段 ID/名称/范围内自动调度，后续阶段逐次确认 |
+| manual | 从仓库 demo 根读 docs/task-packets/DEMO/main.md；用 docs/task-packets/DEMO/dashboard/panel.py status 核对已有 docs/task-packets/DEMO/runtime/state.json，publish 真实 Main 身份后 start --open 并验证入口，离线 HTML 为 docs/task-packets/DEMO/dashboard/index.html；不自动创建、委派或发送执行续接消息，只交付下一步和提示词 |
+
+以上共同要求进入每份实际 Main 卡：Main 唯一 publish，关键事件后更新，宿主可观察等待期间目标每 30 秒核对，不伪造心跳；首次启动不重复 init，恢复先确认旧 Main 停止写入或同一 Main 续接，保留当前 run/history/service，恢复不用 run.start。结束 export 并核对离线快照后 stop。共享状态及面板不授予调度或批准权，模型/速度绑定不变。使用 projection 的包将表中的状态路径实例化为 view.json 并记录原权威引用，不能误写为本地权威。
+
+每个具体角色的开发/审查/修复/复审入口实例化它独占的报告仓库、相对路径和交付渠道；Main 恢复/集成与每个后续阶段确认入口实例化同一个面板 CLI/状态/HTML。报告经已有渠道交付，路径不代表共享文件。半自动确认时登记真实批准证据，packet.set 的阶段指针仅用于显示；读面板、Review PASS 或时间过去不构成用户确认。
+
 ## 全自动调度与恢复
 
 将以下规则按本任务环境写进 Main 卡：

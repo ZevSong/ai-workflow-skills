@@ -35,7 +35,31 @@
 
 模式只决定会话推进方式；范围、验收和项目要求的人类批准按卡片执行。缺少所需调度能力时报告具体缺口并给出人工提示词，由用户决定切换，不默默改用另一种会话载体。Worker/Reviewer 不自行启动其他角色。
 
-## 初始化与恢复
+## 面板入口与单写入规则
+
+- 面板 HTML：{{panel_html_repository_and_path}}
+- CLI（从仓库 {{panel_repository}} 根执行）：{{panel_cli_path}}
+- v1 契约 / CLI 说明：{{packet_contract_path}} / {{panel_readme_path}}
+- 状态模式与权威引用：{{panel_source_mode_and_authority_reference}}
+- 状态 / 配置 / 初始计划：{{panel_state_path}} / {{panel_config_path}} / {{panel_plan_path}}
+- 本次事件文件目录：{{panel_event_directory}}
+- 各角色报告仓库、独占路径与实际交付渠道：{{concrete_report_paths_and_delivery_channels}}
+
+离线 HTML 查看无需 Python；初始化、状态工具、导出与实时预览使用 Python 3.11+ 标准库。固定 dashboard 已随包复制，不编写 HTML/CSS/JavaScript/布局代码，不依赖 Skill 安装目录或维护 scripts。你是共享状态唯一写入者；各角色只写自己报告。projection 的 view.json 是缓存，先核对/按已有渠道维护原权威，再发布投影。
+
+首次启动先执行 `python "{{panel_cli_path}}" status`，读取并协调已生成的 planned 状态、权威材料及实际会话，不盲目重复 init。将真实 Main session_id、本次 UTC observed_at 和实际状态写入 `{{main_start_event_path}}` 的 main.set 事件；不能虚构身份。执行 `python "{{panel_cli_path}}" publish --input "{{main_start_event_path}}"` 后，执行 `python "{{panel_cli_path}}" start --open`，核对返回 URL 的 /api/identity 与 packet_id/tool_version/instance_id，交付已验证入口；浏览器未打开时如实提供 URL。
+
+恢复时先确认旧 Main 已停止写入，或本次为同一 Main 续接；无法确认则只读并报告阻塞。复用当前状态、run_number、事件历史和实际会话，核对批准阶段和未完成动作后 publish，start 复用经身份确认的服务。不 init/import、不调用 run.start、不先 stop 重启服务。旧包无面板时先核对报告构造完整 v1 快照，再 `python "{{panel_cli_path}}" import --input "{{panel_import_path}}"`，保留原轮次、历史和权威引用；不能将旧包清空初始化。只有明确重新执行且 finished 或 Main 已 stopped 时才用独占事件 run.start 归档旧轮次。
+
+关键事件后更新；在宿主能够执行观察的等待期间目标每 30 秒核对实际状态和报告，不能把等待结束、HTTP 请求或计时器当成心跳。无法观察时保留时间差，不补造记录；浏览器每 2 秒检查数据，主动作业超过 120 秒未核对显示延迟。来源时间与 Main 当前核对时间分开，较旧报告保留原时间和 round，实际模型未知时用 null。
+
+在 `{{panel_event_directory}}` 写每次独立 JSON（event_id、expected_seq、occurred_at、observed_at、summary、ops），用 `python "{{panel_cli_path}}" publish --input "{{panel_update_event_path}}"` 提交。每个事件发送后 ID 和完整更新体不可改；响应不确定原文件重试。code 3 时先 status 并核对现有事件、状态和报告，协调后如有新事实用新 ID/新文件；不能只修改 expected_seq 盲重试。plan.replace 保留证据/已执行对象并提升受影响 round；packet.set 只切换阶段指针，不授予批准。
+
+CLI stdout 是 JSON、stderr 是诊断。code 2 为输入/契约错误；code 4 为来源/状态 I/O，state_published 可因写前/写后清理失败分别为 false/true；code 5 为预览或独立导出故障；code 6 表示状态已提交（state_published=true）但 HTML 导出有错，snapshot_updated 可能为 false，也可能已替换后清理失败为 true。读取真实 seq/snapshot_seq 与标记，必要时 status；修复后 export，不回滚或重复业务动作。status.snapshot_exists 仅说明文件存在，不证明当前快照新鲜。
+
+按所选模式和既有授权执行；面板不创建角色、不批准阶段或合并。Worker 交付、各独立 Review、完成和运行结束分别登记，PASS 只属于对应检查维度。结束先 publish 实际结论，再 `python "{{panel_cli_path}}" export`，核对 snapshot_seq 与当前状态及离线 HTML，最后 `python "{{panel_cli_path}}" stop` 本包预览；保留状态、历史和最终 HTML。
+
+## 执行材料与模型恢复
 
 {{read_sources_reconcile_task_evidence_actual_session_ids_pending_dispatch_and_approved_stage}}
 

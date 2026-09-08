@@ -1,6 +1,6 @@
 # 任务包只读进度面板工具
 
-将本目录完整复制为任务包的 `dashboard/`，保留 `panel_core/`（包含私有模块）和 `resources/`。工具使用 Python 3.10+ 标准库；查看已导出的 `dashboard/index.html` 不需要 Python。以下命令从目标仓库根执行，`docs/task-packets/DEMO` 替换为实际包路径。工具根据复制后的入口位置定位任务包，不依赖当前工作目录。
+将本目录完整复制为任务包的 `dashboard/`，保留 `panel_core/`（包含私有模块）和 `resources/`。工具使用 Python 3.11+ 标准库；查看已导出的 `dashboard/index.html` 不需要 Python。以下命令从目标仓库根执行，`docs/task-packets/DEMO` 替换为实际包路径。工具根据复制后的入口位置定位任务包，不依赖当前工作目录。
 
 ```sh
 python docs/task-packets/DEMO/dashboard/panel.py init --input plan.json

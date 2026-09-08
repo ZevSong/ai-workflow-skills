@@ -2,14 +2,45 @@
 
 本页记录可复查的验证范围。它不代表所有 Agent 或真实业务流程已通过。
 
-## 环境与复现
+## v0.3.0 面板接入的当前本地验证
+
+本节为 2026-09-08 至 2026-09-09 的 Task 5 接入检查，Windows / PowerShell、Python 3.11.16、PyYAML。Skill metadata=0.3.0 与 panel tool_version=0.1.0 分开记录；没有据此执行发布。未改面板 Python 实现、HTML/CSS/JavaScript 或图布局资源。
+
+| 检查 | 状态 | 实际证据与界限 |
+| --- | --- | --- |
+| 旧 Skill 同请求生成行为 RED | FAIL（新增面板要求） | 主控在独立上下文使用原人工任务包请求，得到总卡、Main、提示词及 Worker/Reviewer 卡，但 HTML=0、面板工具=0；这不否定旧生成范围 |
+| 新分发测试 RED | FAIL（预期缺口） | 修改指引前运行 test_distribution.py：19 项中 1 项失败，真实 ZIP 缺少 references/progress-panel.md；其余 18 项通过 |
+| 复制包 CLI 与真实 ZIP 迁移 | PASS | test_panel_integration.py 共 11 项，23.664 秒；新增测试真实打包/解压到中文及空格目录，再复制 dashboard，改变 cwd 并以屏蔽维护模块的子进程运行 init/export/status，seq=0、planned、无实际身份、无服务、导出不改状态 |
+| 完整 Python 回归及分发 GREEN | PASS | 113 项，29.356 秒；包含上面的分发测试和迁移闭环，以及契约、存储、渲染、回环预览和 CLI 既有测试。不是 CI 或业务角色执行 |
+| 仓库静态检查 | PASS | 元数据、链接、围栏、自包含和可移植路径通过；不验证远程链接、Markdown 锚点或所有未来生成结果 |
+| Skill 创建器基础校验 | PASS（UTF-8 模式） | Windows 默认 GBK 读取中文 UTF-8 时曾出现 UnicodeDecodeError；用 Python -X utf8 重跑得到 Skill is valid，未修改该外部校验器 |
+| 独立 ZIP 命令与资源清单 | PASS | package_skill.py 实际产出 50 文件 ZIP，含 12 个 dashboard 文件、MIT 与面板接入/状态契约，无缓存或维护 scripts；迁移运行范围见上方真实 ZIP 测试 |
+| 新 Skill 同请求独立生成 GREEN | PASS（人工生成限定范围） | 同一原始请求生成 1 Task、2 个 Worker/Reviewer 角色、7 段独立提示词；12 个固定 dashboard 文件和契约完整复制，真实 init/status 成功。主控产物审计 14 项 PASS：planned/seq0/run1、实际身份/模型为空、规范本地权威、HTML 与固定渲染器一致、无服务或业务启动；作者未提示预期或修复产物 |
+| 本次浏览器 UI 重跑 | UNRUN | 本任务只改接入说明/模板/测试，未改网页资源；既有界面 fixture 及图像证据见 [面板案例](progress-panel/README.md)，不能扩大为新模式业务验收 |
+| 真实 Main/Worker/Reviewer、三模式端到端及跨机器 | UNRUN | 生成评估不启动业务会话，目录搬迁不代表多机器并发；宿主观察频率、真实模型/Fast、批准、CI、合并、部署、发布和实机验收分别待证 |
+
+实际维护命令从仓库根执行：
+
+```sh
+.venv/Scripts/python.exe -m unittest discover -s tests -p test_distribution.py -v
+.venv/Scripts/python.exe -m unittest discover -s tests -p test_panel_integration.py -v
+.venv/Scripts/python.exe -m unittest discover -s tests -v
+.venv/Scripts/python.exe scripts/validate_skills.py
+.venv/Scripts/python.exe scripts/package_skill.py plan-agent-tasks --output .superpowers/sdd/2026-09-08-task-packet-progress-panel/task-5-package-check
+```
+
+独立生成使用普通人工模式请求；评估者报告 7 个本地 Markdown 链接、模板展开/路径/JSON 检查及 12 个固定文件逐字节一致性通过。主控还核对 Main 的 planned 复用、真实身份发布、恢复确认旧 Main 停止、保留 run/history/service、单写入者和独占报告约定。首次初始化因 Python 相对路径错误未进入 CLI；第二次因 plan 位于错误检出路径返回 code 2、state_published=false，纠正路径后才初始化成功，未覆盖既有状态。这不是首次尝试全部成功。Mermaid 仅完成文本检查，实际渲染 UNRUN；生成行为 PASS 不代表业务实施、独立审查、三模式调度或真实角色通过。
+
+真实 ZIP 测试调用本仓库 package_skill，解压完整 Skill 后复制其 dashboard；迁移后的子进程只用随包模块与 Python 标准库，PYTHONPATH 放入会抛错的 package_skill/validate_skills/panel_fixtures 同名模块，证明 CLI 没有导入维护代码。没有重复实现已有 CLI 错误分支测试，也没有为了生成网页而新增网页代码。工具运行需要 Python 3.11+；已有独立 HTML 离线查看无需 Python。
+
+## v0.1 至 v0.2.1 历史范围
 
 - 日期：2026-09-06 至 2026-09-08。
 - 本地环境：Windows / PowerShell，Python 3.14.6，PyYAML。
 - 维护命令从发布仓库根执行：`python scripts/validate_skills.py`、`python -m unittest discover -s tests -v`。
 - `scripts/` 和 `tests/` 属于开源仓库的维护工具，不是使用本 Skill 的运行依赖；单独安装 Skill 不需要这些文件。
 
-## 实际范围
+### 历史实际范围
 
 | 项目 | 状态 | 证据与界限 |
 | --- | --- | --- |

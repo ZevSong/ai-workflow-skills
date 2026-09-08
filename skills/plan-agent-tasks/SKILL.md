@@ -3,13 +3,13 @@ name: plan-agent-tasks
 description: Use when the user explicitly invokes plan-agent-tasks after discussing requirements and wants executable, independently verifiable task cards plus named Main, Worker, and Reviewer prompts with per-session model and speed plans. Also use to resume missing-requirement clarification within that active invocation.
 license: MIT
 metadata:
-  version: "0.2.1"
-  execution-requirements: "Planning needs repository and current model-catalog access; automatic dispatch additionally needs host tools for explicit model selection, isolated session creation, continuation, and status tracking."
+  version: "0.3.0"
+  execution-requirements: "Packet panel generation and live tooling need Python 3.11+; offline HTML viewing needs no Python. Planning needs repository and current model-catalog access; automatic dispatch additionally needs explicit model selection, isolated sessions, continuation, and status tracking."
 ---
 
 # 多 Agent 任务拆分
 
-把已确认需求转为本地 Markdown 任务包，为每个会话命名，按全自动、半自动或人工模式安排执行，为每个会话显式选择模型资源与速度，用 Mermaid 流程图展示顺序，并在最终回复中逐条给出可独立复制的简短提示词。**任务卡文件、会话执行流程图、逐会话模型绑定和对话中的启动提示词都是必交付内容。** 默认使用中文，遵循用户指定语言与项目规范。
+把已确认需求转为本地任务包，为每个会话命名，按全自动、半自动或人工模式安排执行，为每个会话显式选择模型资源与速度，用 Mermaid 流程图展示顺序，并在最终回复中逐条给出可独立复制的简短提示词。**任务卡、会话流程图、逐会话模型绑定、对话中的启动提示词和独立 HTML 进度面板都是必交付内容。** 默认使用中文，遵循用户指定语言与项目规范。
 
 ## 触发与授权
 
@@ -49,11 +49,13 @@ metadata:
 
 ## 3. 写入可移植任务包
 
+- 必读 [进度面板接入](references/progress-panel.md)、其 v1 状态契约和随包 CLI 说明。完整复制固定 `assets/dashboard/` 及状态契约到任务包，生成严格 planned 的 `runtime/plan.json`，使用复制后的 panel.py 执行 init 和 status，交付 `dashboard/index.html`；这属于材料生成，不启动预览服务或任何角色。不重新编写网页代码或布局。已有状态先核对并保留，不能重复 init 覆盖。Python 3.11+ 缺失时如实记录生成阻塞。
 - 遵循项目任务资料位置；无现有约定时，使用目标仓库的 `docs/task-packets/<parent-task-id>/`。无法确定资料所属仓库时先说明缺口，不在任意父目录写入。
 - 所有任务卡、提示词及其命令、文件链接使用**有明确锚点的相对路径**。跨仓使用「仓库标识＋仓库内相对路径」。本地根目录仅在运行时解析，不写入产物；具体规则见任务包约定。
 - 同一事实只设一个主位置。短提示词引用确切任务卡，不复制长验收清单，不引用“上述”“登记中的”“前面讨论”等外部上下文。每一段都必须可单独复制到全新会话。
 - 若同一 Task 已有任务包，先读取并更新相关内容，保留实现/审查证据；影响任务边界或验收的变更必须标记原任务与审查需复核，不能覆盖成一个全新待执行包。
 - 将选定模式的调度、恢复、阶段确认、模型目录复核、逐会话创建参数与停止规则写入 Main 卡；执行者不必安装本 Skill 才能恢复工作。全自动和半自动的 Main 提示词明确授权按卡片命名新建或续接会话，并显式传入已解析的模型参数；人工模式明确禁止自动启动或续接其他会话，并把会话创建配置放在每段提示词前供用户设置。执行载体及工具能力如实注明，不把内部子 Agent 冒充 Desktop 独立会话。
+- 总卡与 Main 实例化面板入口、CLI、状态模式/权威引用、数据及报告路径；每个具体 Worker/Reviewer 和全部启动、恢复、修复、复审、集成、阶段确认提示词实例化本角色报告入口或 Main 面板入口。Main 是唯一共享状态写入者，角色各自报告并走已有交付渠道，不假定 worktree/文件共享。Main 首次启动复用 planned 状态、publish 真实身份后 start/verify/open；恢复确认旧 Main 停止，延续原 run、历史和服务；操作与错误分支落实到 Main 卡。
 
 ## 4. 校验与交付
 
@@ -61,12 +63,15 @@ metadata:
 
 不得虚构测试命令、现有文件、Issue、已提交版本或通过结果。拟新增文件标为「计划创建」。计划中的测试场景明确列出，生成阶段不要求 Worker 尚未编写的测试已经通过。
 
+核对面板 JSON 的 Task/角色/阶段/依赖/完成检查与卡片一致；planned 无实际 ID、执行结果或假批准；CLI 和资源完整、HTML 可离线查看、服务未启动。本地权威引用以本包 `runtime/state.json` 结尾，projection 保留原权威。检查 Main 的观察频率、单写入者、恢复去重、不可变事件重试、code 4/6 实际提交标记和结束 export/stop 规则；面板展示不扩大执行或批准权限。
+
 需求就绪并生成任务卡后，最终对话回复必须交付：
 
 1. 任务包的仓库标识、相对入口、所选执行模式、资源档位、速度策略及各自选择来源，以及具体会话名称清单。半自动模式额外列出大阶段、阶段验收和下一阶段的用户确认点。
 2. **会话执行流程图**：用 `mermaid` 代码围栏直接展示总卡中的流程图，放在会话提示词之前；不能只给图片、文件链接、通用角色示意图或文字顺序代替。
 3. 按顺序逐条列出的**具体会话启动提示词**：每个 Worker 和每个独立 Reviewer 分别有自己的段落；Main 提供初始化或本轮交接/恢复入口。每段使用独立的 `text` 代码围栏，注明完整会话名称、新建/续接、启动者（用户或 Main）、何时使用，并在围栏前列出该会话准确的提供方、模型、推理强度和服务层。自动模式仍完整交付各会话提示词，注明由 Main 调度、供用户查看或恢复使用，无需用户逐个粘贴。
 4. 修复、复审和 Main 集成的简短续接提示词，注明适用条件；半自动模式逐个提供进入后续阶段的确认提示词。修复和复审通常继续原会话，不把每次续接误写成创建新 Session；确需换会话时按卡片从资料恢复。
+5. 面板 HTML 的仓库相对入口、权威来源、实际 init/status 结果和运行依赖；planned 快照不表示角色已启动，离线查看无需 Python，实时工具需要 Python 3.11+。
 
 每段提示词以少量句子说明角色、Task ID、实施/审查仓库、卡片仓库与相对路径、要做的动作和停止点；详细要求留在任务卡。多个任务必须分别实例化，不用一个通用模板加“其他任务同理”代替，也不让用户手动替换编号或路径。**不能只提供 prompts.md 的链接、只把提示词写进文件或用交付摘要代替启动提示词。** 用户明确要求本轮只交付文件或指定部分角色时，按其限定范围交付。
 

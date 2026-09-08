@@ -10,10 +10,62 @@ import tempfile
 import unittest
 import urllib.error
 import urllib.request
+import zipfile
 
 from panel_fixtures import make_state, make_event
 
 ASSETS = Path(__file__).resolve().parents[1] / "skills/plan-agent-tasks/assets/dashboard"
+
+
+class RelocatedArchiveTests(unittest.TestCase):
+    def test_real_zip_dashboard_runs_without_maintenance_modules(self):
+        # Maintenance imports are used only to create the ZIP, never by its child CLI.
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+        from package_skill import package_skill
+        with tempfile.TemporaryDirectory(prefix="ZIP migration ") as scratch:
+            root = Path(scratch)
+            archive = package_skill(ASSETS.parents[1], root / "dist")
+            relocated = root / "迁移 中文 with spaces"
+            with zipfile.ZipFile(archive) as bundle:
+                bundle.extractall(relocated)
+            packet = relocated / "虚构仓库/docs/task-packets/迁移 DEMO"
+            shutil.copytree(relocated / "plan-agent-tasks/assets/dashboard", packet / "dashboard")
+            state = make_state()
+            state["source"]["reference"] = {
+                "repository": "虚构仓库", "path": "docs/task-packets/迁移 DEMO/runtime/state.json",
+            }
+            plan = {key: state[key] for key in ("packet", "source", "main", "tasks", "sessions", "stages", "checks", "evidence", "dependencies")}
+            plan_path = packet / "plan.json"
+            plan_path.write_text(json.dumps(plan, ensure_ascii=False), encoding="utf-8")
+            # Poison maintenance names in child PYTHONPATH: any accidental import fails.
+            guard = relocated / "import guard"
+            guard.mkdir()
+            for name in ("package_skill", "validate_skills", "panel_fixtures"):
+                (guard / (name + ".py")).write_text("raise RuntimeError('maintenance import forbidden')\n", encoding="utf-8")
+            environment = {**os.environ, "PYTHONPATH": str(guard)}
+            def command(*args):
+                completed = subprocess.run(
+                    [sys.executable, "-X", "utf8", str(packet / "dashboard/panel.py"), *args],
+                    cwd=relocated, env=environment, capture_output=True, text=True,
+                    encoding="utf-8", timeout=15,
+                )
+                self.assertEqual(completed.returncode, 0, completed.stderr + completed.stdout)
+                return json.loads(completed.stdout)
+            initialized = command("init", "--input", str(plan_path.relative_to(relocated)))
+            self.assertTrue(initialized["state_published"])
+            self.assertTrue(initialized["snapshot_updated"])
+            saved = (packet / "runtime/state.json").read_bytes()
+            command("export")
+            self.assertEqual((packet / "runtime/state.json").read_bytes(), saved)
+            status = command("status")
+            self.assertEqual(status["seq"], 0)
+            self.assertFalse(status["service"]["running"])
+            self.assertEqual(status["source"]["reference"], state["source"]["reference"])
+            html = (packet / "dashboard/index.html").read_text(encoding="utf-8")
+            self.assertIn('"lifecycle":"planned"', html)
+            self.assertIn('"actual_id":null', html)
+            self.assertIn('"tool_version":"0.1.0"', html)
+            self.assertNotIn("<!--PANEL_", html)
 
 
 class IntegrationTests(unittest.TestCase):

@@ -44,6 +44,14 @@
 
 ## 修复、复审与交接
 
+- 本 Reviewer 独占进展/审查报告：{{reviewer_report_repository_and_path}}
+- 报告交付渠道及 Main 接收方式：{{reviewer_report_delivery_channel}}
+- 当前任务轮次：{{task_round}}
+
+开始、里程碑、阻塞、审查结论和复审时追加本报告：写 Task、逻辑角色/可观察的真实会话 ID、任务 round、来源 UTC 时间、进度、阻塞（或无）、下一步、对应检查的 PASS/FAIL/UNRUN/BLOCKED、证据仓库与相对路径。保留旧轮次结论，每位 Reviewer 使用不同具名文件；审查 PASS 不代表任务完成、下一阶段批准或发布。
+
+仅在自己审查 worktree 的获准报告路径写入，按上述已有渠道交付；不假定文件与 Main 共享，不要求访问 Main 工作区。不写共享 runtime/state.json、view.json、panel.json，不调用 panel.py publish，不改 dashboard；Main 核对报告后统一发布状态。
+
 {{return_findings_to_worker_then_retest_targeted_cases_and_affected_regression}}
 
 {{report_repository_relative_path_target_binding_and_main_handoff}}

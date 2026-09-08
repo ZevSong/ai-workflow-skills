@@ -35,6 +35,20 @@ class DistributionTests(unittest.TestCase):
             bundle.extractall(relocated)
         self.assertEqual(validate_skill(relocated / "sample-skill"), [])
 
+    def test_actual_skill_archive_contains_panel_instructions_and_complete_bundle(self):
+        skill = Path(__file__).resolve().parents[1] / "skills" / "plan-agent-tasks"
+        archive = package_skill(skill, self.root / "dist")
+        with zipfile.ZipFile(archive) as bundle:
+            names = set(bundle.namelist())
+            self.assertIn("plan-agent-tasks/references/progress-panel.md", names)
+            self.assertIn("plan-agent-tasks/references/progress-state-contract.md", names)
+            dashboard = skill / "assets" / "dashboard"
+            expected = {"plan-agent-tasks/" + path.relative_to(skill).as_posix()
+                        for path in dashboard.rglob("*") if path.is_file()
+                        and "__pycache__" not in path.parts}
+            self.assertTrue(expected.issubset(names), expected - names)
+            self.assertFalse(any("__pycache__" in name or name.endswith(".pyc") for name in names))
+
     def test_missing_referenced_file_is_rejected(self):
         (self.skill / "README.md").write_text("[missing](absent.md)\n", encoding="utf-8")
         self.assertTrue(any("missing link target" in error for error in validate_skill(self.skill)))

@@ -5,11 +5,14 @@
 | 案例 | 材料类型 | 用途 |
 | --- | --- | --- |
 | [需求缺口](clarification-needed.md) | 手工编写的输入与预期行为 | 需求不清时列明问题并停止正式拆分 |
-| [人工任务包基线](manual-task-pack/README.md) | v0.1 独立 Agent 实际生成，含 fixture 和完整输出 | 会话命名、相对路径、任务卡、提示词及 Mermaid 对应关系；不作为 v0.2 模型绑定示例 |
+| [人工任务包基线](manual-task-pack/README.md) | v0.1 独立 Agent 实际生成，含 fixture 和完整输出 | 会话命名、相对路径、任务卡、提示词及 Mermaid 对应关系；不作为 v0.2 模型绑定或 v0.3 面板生成示例 |
 | [半自动阶段确认](semi-auto-stages.md) | 手工编写的规则片段 | 阶段内自动推进，后续阶段需明确批准 |
 | [自动模式工具缺失](auto-capability-gap.md) | 手工编写的规则片段 | 能力不足时报告缺口，不静默更换执行载体 |
+| [进度面板 fixture](progress-panel/README.md) | 固定工具、模拟事件和 UI 证据 | 查看任务、审查门禁、过期观察和历史；不代表真实角色执行 |
 | [模型与 Fast 选择](model-and-fast-selection.md) | 手工编写的输入与预期行为 | 显式绑定、目录刷新、关键路径加速及无单会话 Fast 时的回退 |
 
 模式片段不是完整任务包。实际调用 Skill 时仍必须提供每个角色的完整卡片、独立短提示词和与其对应的流程图。
 
 检查范围及未验证事项见 [验证记录](validation.md)。
+
+新调用须生成独立 dashboard、planned 状态和离线 HTML，按 [接入约定](../references/progress-panel.md) 执行。原人工基线保留原始范围，不补写面板冒充当时产物；当前生成行为与迁移测试见验证记录。
