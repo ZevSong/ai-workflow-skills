@@ -121,7 +121,7 @@
 | `serve` | 供 start 使用的服务进程入口，持有本包服务锁；不承担采集或调度 |
 | `stop` | 按本包实例身份请求关闭预览服务，不修改任务结果 |
 
-输入 JSON 通过文件传递，避免把角色文字拼进 shell。每个命令向 stdout 输出一份 JSON 结果，诊断写 stderr；成功退出 0，输入错误 2，序号/实例冲突 3，来源读取错误 4，预览故障 5。状态成功发布但 HTML 导出失败退出 6，并返回 `state_published=true`、实际 seq 和 `snapshot_updated=false`，防止 Main 误以为整次写入没有发生。
+输入 JSON 通过文件传递，避免把角色文字拼进 shell。每个命令向 stdout 输出一份 JSON 结果，诊断写 stderr；成功退出 0，输入错误 2，序号/实例冲突 3，来源/状态 I/O 错误 4，预览故障 5。状态操作成功返回但后续 HTML 导出失败退出 6，并返回 `state_published=true`、实际 seq 和真实 `snapshot_updated`（替换前失败为 false，HTML 已替换后的清理失败为 true）；code 4 也须如实保留状态替换后清理失败的提交标记，防止 Main 误以为已提交的写入没有发生。
 
 HTTP 只提供 `/`、`/index.html`、`/api/status`、`/api/identity` 及 `/evidence/<id>` 的 GET/HEAD。状态响应为 `{"state": ..., "sync_error": null}`；读源出错时携带上次有效 state 和错误，启动即无有效数据时返回 503。identity 包含 packet_id、工具版本及启动时生成的实例 UUID；它不是执行授权或用户凭据。
 

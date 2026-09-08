@@ -112,7 +112,24 @@
     byId('graph-content').querySelectorAll('[data-edge-index]').forEach(node=>{const e=graph.edges[Number(node.getAttribute('data-edge-index'))];node.textContent=e.kind==='approval'?'阶段批准':e.kind==='all'?'全部满足':e.requiredCheckIds.length?'当前轮检查 + 证据':'已完成';const path=node.previousSibling;path.querySelector('title').textContent=e.kind==='dependency'?dependencyLabel(state,{from:e.from,required_check_ids:e.requiredCheckIds}):node.textContent;});
   }
   function referenceText(reference) {return reference.url||reference.repository+' / '+reference.path;}
-  function evidenceNode(state,id,evidence=state.evidence[id]) {const node=el('div',undefined,'muted');node.dataset.evidenceId=id;if(!evidence){node.textContent=id+' · 未找到证据';return node;}node.append(el('span',evidence.title+' · '));if(evidence.reference.url&&/^https?:\/\//i.test(evidence.reference.url)){const link=el('a',evidence.reference.url);link.href=evidence.reference.url;link.target='_blank';link.rel='noopener noreferrer';node.append(link);}else node.append(el('span',referenceText(evidence.reference)));return node;}
+  function localEvidenceCandidate(state,id,evidence) {
+    if(!['http:','https:'].includes(location.protocol)||ui.run!=='current'||state.source.mode!=='local'||/[\/\\\0]/.test(id)||['.','..'].includes(id))return false;
+    const anchor=state.source.reference,ref=evidence.reference,registered=state.evidence[id]?.reference;
+    if(!anchor.path||!ref.path||ref.repository!==anchor.repository||!registered||registered.repository!==ref.repository||registered.path!==ref.path)return false;
+    const parts=anchor.path.replace(/\\/g,'/').split('/'),target=ref.path.replace(/\\/g,'/').split('/');
+    if(parts.slice(-2).join('/')!=='runtime/state.json')return false;
+    const prefix=parts.slice(0,-2);return target.length>prefix.length&&prefix.every((part,i)=>part===target[i]);
+  }
+  function evidenceNode(state,id,evidence=state.evidence[id]) {
+    const node=el('div',undefined,'muted');node.dataset.evidenceId=id;if(!evidence){node.textContent=id+' · 未找到证据';return node;}
+    node.append(el('span',evidence.title+' · '));
+    if(evidence.reference.url&&/^https?:\/\//i.test(evidence.reference.url)){const link=el('a',evidence.reference.url);link.href=evidence.reference.url;link.target='_blank';link.rel='noopener noreferrer';node.append(link);}
+    else {
+      node.append(el('span',referenceText(evidence.reference)));
+      if(localEvidenceCandidate(state,id,evidence)){const link=el('a','尝试查看包内文本');link.href='/evidence/'+encodeURIComponent(id);link.target='_blank';link.rel='noopener noreferrer';link.title='服务会核对文件范围与可用性；文件缺失或不可读取时显示原因';node.append(document.createTextNode(' · '),link);}
+    }
+    return node;
+  }
   function eventEvidence(state,event) {
     const ids=new Set(),recorded=new Map();
     const add=values=>(values||[]).forEach(id=>ids.add(id));

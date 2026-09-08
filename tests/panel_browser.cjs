@@ -20,6 +20,24 @@ catch { console.log('UNRUN: Playwright unavailable; set PANEL_PLAYWRIGHT_MODULE 
     assert.match(await page.locator('#freshness').innerText(),/离线快照/,'Offline snapshot needs its own prominent freshness hint');
     assert.doesNotMatch(await page.locator('#freshness').innerText(),/状态未及时同步/);
     assert.match(await page.locator('#packet-meta').innerText(),/Main.*running/,'Registered Main status is absent');
+    if(process.env.PANEL_BROWSER_MODE==='evidence') {
+      assert.equal(await page.locator('a[href^="/evidence/"]').count(),0,'Offline snapshot must keep local locators');
+      await page.goto(process.env.PANEL_EVIDENCE_URL);
+      await page.waitForFunction(()=>document.querySelector('#connection').textContent.includes('已连接'));
+      await page.locator('#task-list [data-task-id="DEMO-001"]').click();
+      const good=page.locator('#task-detail [data-evidence-id="SIM-E1"] a').first();
+      assert.equal(await good.count(),1,'Registered packet-local evidence needs a viewing entry');
+      assert.equal(await good.getAttribute('href'),'/evidence/SIM-E1');
+      assert.match(await good.innerText(),/尝试查看/,'A locator must not claim verified availability');
+      const [report]=await Promise.all([page.waitForEvent('popup'),good.click()]);
+      await report.waitForLoadState();assert.match(await report.locator('body').innerText(),/中文已核对证据/);assert.equal(await report.locator('script').count(),0);await report.close();
+      const missing=page.locator('#task-detail [data-evidence-id="MISSING"] a');
+      const [missingPage]=await Promise.all([page.waitForEvent('popup'),missing.click()]);
+      await missingPage.waitForLoadState();assert.match(await missingPage.locator('body').innerText(),/unavailable/);await missingPage.close();
+      assert.equal(await page.locator('#task-detail [data-evidence-id="CROSS"] a').count(),0,'Cross-repository reference must remain a locator');
+      assert.match(await page.locator('#task-detail [data-evidence-id="CROSS"]').innerText(),/other-repository/);
+      assert.deepEqual(errors,[]);console.log(JSON.stringify({status:'PASS',mode:'evidence',browser:browser.version(),checks:'actual nested packet route via UI, text-only response, missing error, cross-repository locator, offline zero-links'}));return;
+    }
     if(process.env.PANEL_BROWSER_MODE==='review-1') {
       const initial=await page.evaluate(()=>JSON.parse(document.getElementById('panel-data').textContent));
       let responseState=initial;
