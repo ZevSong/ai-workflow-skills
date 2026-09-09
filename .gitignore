@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 .venv/
 dist/
+.worktrees/
 .DS_Store
 Thumbs.db
 .env

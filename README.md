@@ -8,7 +8,7 @@ Reusable workflows for AI agents, with task cards, examples, and explicit execut
 
 | Skill | 用途 | 当前验证范围 |
 | --- | --- | --- |
-| [plan-agent-tasks](skills/plan-agent-tasks/README.md) | 将已确认需求拆成可执行、可验收的任务卡，生成具名会话、逐会话模型/Fast 配置、提示词和 Mermaid 流程图 | 见 [验证记录](skills/plan-agent-tasks/examples/validation.md)；自动调度及逐会话模型/Fast 未完成端到端验证 |
+| [plan-agent-tasks](skills/plan-agent-tasks/README.md) | 将已确认需求拆成可执行、可验收的任务卡，生成具名会话、逐会话模型/Fast 配置、提示词、Mermaid 流程图和每包独立 HTML 进度面板 | 见 [验证记录](skills/plan-agent-tasks/examples/validation.md)；自动调度及逐会话模型/Fast 未完成端到端验证 |
 
 ## 快速开始
 
@@ -53,7 +53,7 @@ Codex 的安装和发现机制以 [官方文档](https://learn.chatgpt.com/docs/
 
 ## 校验与独立打包
 
-以下命令从本仓库根执行，维护工具需要 Python 3.11+；Skill 本身不要求安装 Python。
+以下命令从本仓库根执行，维护工具以及任务包面板的初始化、状态更新、导出和实时预览需要 Python 3.11+；单独查看已生成的离线 HTML 无需 Python。面板运行只依赖随包资源与 Python 标准库。
 
 ```sh
 python -m pip install -r requirements-dev.txt

@@ -52,6 +52,14 @@
 
 ## 交付与修复闭环
 
+- 本角色独占进展/交付报告：{{worker_report_repository_and_path}}
+- 报告交付渠道及 Main 接收方式：{{worker_report_delivery_channel}}
+- 当前任务轮次：{{task_round}}
+
+启动、里程碑、阻塞、交付和修复时更新本报告：写 Task、逻辑角色/可观察的真实会话 ID、任务 round、来源 UTC 时间、进度摘要、阻塞（或无）、下一步、对应维度的 PASS/FAIL/UNRUN/BLOCKED、带仓库锚点的证据。续报按时间/轮次追加并保留旧结论；自己的交付不能宣布独立审查通过。
+
+只在自己实施 worktree 的获准报告路径写入，通过上述已有渠道交付；不假定 Main 与本角色共享文件，也不要求访问 Main 工作区。不写共享 runtime/state.json、view.json、panel.json，不调用 panel.py publish，不改 dashboard；由 Main 核对并维护共享状态。
+
 {{implementation_locator_changed_files_commands_results_open_questions_report_repository_path}}
 
 {{handoff_to_review_fix_and_re_review_boundaries}}

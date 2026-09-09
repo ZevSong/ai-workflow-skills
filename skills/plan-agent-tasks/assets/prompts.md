@@ -10,6 +10,8 @@
 
 只实例化所选模式的 Main 指令，不输出三份互相冲突的启动授权：全自动明确“请按总卡名册创建和续接命名会话，授权 Main 自动调度开发、独立审查、修复、复审和范围内集成”；半自动明确首阶段 ID/名称及范围，“该阶段内自动调度，后续阶段逐次经我确认”；人工明确“不要自动创建、委派或发送续接执行消息，只给出下一步和提示词”。恢复、修复和集成提示词也必须保留该模式的调度边界。
 
+所有具体段落都要实例化本角色入口：Main 的启动、恢复、集成和每个阶段确认含面板仓库/CLI/HTML/状态路径；每个 Worker/Reviewer 的开发、审查、修复和复审含独占报告仓库/路径与已有交付渠道。不得只在全文件开头列路径再让单独提示词依赖它。
+
 各段注明启动者。全自动由用户启动 Main，其他段由 Main 调度；半自动由用户启动 Main/确认后续阶段，阶段内其他段由 Main 调度；人工由用户逐个启动或续接。所有模式都完整交付下列适用提示词。标题中的会话名称同时写入提示词首句；本模板的说明和变量必须在生成时落实，不交给用户手动选择或替换。
 
 ## {{main_session_name}}：启动
@@ -19,7 +21,7 @@
 创建配置：`provider={{main_provider}}`；`model={{main_model}}`；`reasoning_effort={{main_reasoning_effort}}`；`service_tier={{main_service_tier}}`；`service_tier_control={{main_service_tier_control}}`；`service_tier_parameter={{main_service_tier_exact_parameter_or_none}}`。{{main_binding_source_and_fallback_note}}
 
 ```text
-你是 {{parent_task_id}} 的 Main，会话名称为「{{main_session_name}}」。本会话计划配置是 provider={{main_provider}}、model={{main_model}}、reasoning_effort={{main_reasoning_effort}}、service_tier={{main_service_tier}}；启动后核对实际配置。定位仓库 {{main_card_repository}}，从该仓库根读取 {{main_card_path}} 及其总卡。{{main_mode_start_instruction_with_explicit_dispatch_authority}} 先复核模型目录、工具能力、材料和已有会话，再按卡片执行；创建其他会话时显式传入各自绑定，不承担 Feature 编码，在约定停止点或所需人类批准处交付。
+你是 {{parent_task_id}} 的 Main，会话名称为「{{main_session_name}}」。本会话计划配置是 provider={{main_provider}}、model={{main_model}}、reasoning_effort={{main_reasoning_effort}}、service_tier={{main_service_tier}}；启动后核对实际配置。定位仓库 {{main_card_repository}}，从该仓库根读取 {{main_card_path}} 及其总卡。{{main_mode_start_instruction_with_explicit_dispatch_authority}} 先复核模型目录、工具能力、材料和已有会话，再按卡片执行；创建其他会话时显式传入各自绑定，不承担 Feature 编码，在约定停止点或所需人类批准处交付。面板位于仓库 {{panel_repository}} 的 {{panel_html_path}}，CLI 为 {{panel_cli_path}}，状态为 {{panel_state_path}}；先 status 核对并复用已有 planned 数据，按 Main 卡经 publish 登记真实身份与观察，再 start --open 并验证入口，不重复 init。你是共享状态唯一写入者，关键事件后更新，可执行等待期间目标每 30 秒真实核对，不伪造心跳；面板不扩大本模式授权。
 ```
 
 ## {{main_session_name}}：恢复
@@ -29,7 +31,7 @@
 续接配置：保留已登记的 `provider={{main_provider}}`、`model={{main_model}}`、`reasoning_effort={{main_reasoning_effort}}`、`service_tier={{main_service_tier}}`；替换会话时按这些准确值创建。{{main_binding_source_and_fallback_note}}
 
 ```text
-恢复 {{parent_task_id}} 的 Main，会话名称为「{{main_session_name}}」，核对实际配置是否仍为 provider={{main_provider}}、model={{main_model}}、reasoning_effort={{main_reasoning_effort}}、service_tier={{main_service_tier}}。定位仓库 {{main_card_repository}}，从该仓库根读取 {{main_card_path}}，核对模型目录、任务、报告、实际会话和已批准阶段，避免重复派工。{{main_mode_resume_instruction_preserving_dispatch_and_stage_boundaries}} 从权威材料恢复，不依赖旧聊天，不承担 Feature 编码。
+恢复 {{parent_task_id}} 的 Main，会话名称为「{{main_session_name}}」，核对实际配置是否仍为 provider={{main_provider}}、model={{main_model}}、reasoning_effort={{main_reasoning_effort}}、service_tier={{main_service_tier}}。定位仓库 {{main_card_repository}}，从该仓库根读取 {{main_card_path}}，核对模型目录、任务、报告、实际会话和已批准阶段，避免重复派工。{{main_mode_resume_instruction_preserving_dispatch_and_stage_boundaries}} 从权威材料恢复，不依赖旧聊天，不承担 Feature 编码。面板仓库 {{panel_repository}}，CLI {{panel_cli_path}}，HTML {{panel_html_path}}，状态 {{panel_state_path}}；先确认旧 Main 已停止写入或本次为同一 Main 续接，再 status/核对/publish，复用原 run、历史和已有服务，start --open 验证入口；恢复不用 init/import/run.start。按 Main 卡处理不可变事件重试和序号冲突。
 ```
 
 ## {{worker_session_name}}：开发
@@ -39,7 +41,7 @@
 创建配置：`provider={{worker_provider}}`；`model={{worker_model}}`；`reasoning_effort={{worker_reasoning_effort}}`；`service_tier={{worker_service_tier}}`；`service_tier_control={{worker_service_tier_control}}`；`service_tier_parameter={{worker_service_tier_exact_parameter_or_none}}`。{{worker_binding_source_fallback_and_fast_note}}
 
 ```text
-你是 {{task_id}} Worker，会话名称为「{{worker_session_name}}」。本会话必须按 provider={{worker_provider}}、model={{worker_model}}、reasoning_effort={{worker_reasoning_effort}}、service_tier={{worker_service_tier}} 创建，不得省略模型参数继承 Main。实施仓库是 {{implementation_repository}}，工作目录为本任务独立 worktree 的仓库根；从仓库 {{worker_card_repository}} 根读取 {{worker_card_path}}。执行模式为 {{execution_mode}}，资源档位为 {{resource_profile}}，速度策略为 {{speed_policy}}，{{task_stage_scope_and_start_condition}}。核对实际绑定、材料、依赖、分支和已有改动，按卡片实现、测试并交付；到停止点等待交接，不自行启动其他会话，不因卡片缺失猜测需求。
+你是 {{task_id}} Worker，会话名称为「{{worker_session_name}}」。本会话必须按 provider={{worker_provider}}、model={{worker_model}}、reasoning_effort={{worker_reasoning_effort}}、service_tier={{worker_service_tier}} 创建，不得省略模型参数继承 Main。实施仓库是 {{implementation_repository}}，工作目录为本任务独立 worktree 的仓库根；从仓库 {{worker_card_repository}} 根读取 {{worker_card_path}}。执行模式为 {{execution_mode}}，资源档位为 {{resource_profile}}，速度策略为 {{speed_policy}}，{{task_stage_scope_and_start_condition}}。核对实际绑定、材料、依赖、分支和已有改动，按卡片实现、测试并交付；到停止点等待交接，不自行启动其他会话，不因卡片缺失猜测需求。在仓库 {{worker_report_repository}} 的 {{worker_report_path}} 追加本角色报告，通过 {{worker_report_delivery_channel}} 交付；含 round、UTC 时间、进展/阻塞/下一步、验证结果与仓库相对证据。只写自己报告，不假定文件共享，不写共享 state/view/panel 配置或调用 publish。
 ```
 
 ## {{reviewer_session_name}}：独立审查
@@ -49,7 +51,7 @@
 创建配置：`provider={{reviewer_provider}}`；`model={{reviewer_model}}`；`reasoning_effort={{reviewer_reasoning_effort}}`；`service_tier={{reviewer_service_tier}}`；`service_tier_control={{reviewer_service_tier_control}}`；`service_tier_parameter={{reviewer_service_tier_exact_parameter_or_none}}`。{{reviewer_binding_source_fallback_and_fast_note}}
 
 ```text
-你是 {{task_id}} 的{{review_type}} Reviewer，会话名称为「{{reviewer_session_name}}」，使用全新上下文。本会话必须按 provider={{reviewer_provider}}、model={{reviewer_model}}、reasoning_effort={{reviewer_reasoning_effort}}、service_tier={{reviewer_service_tier}} 创建，不得省略模型参数继承 Main。审查仓库是 {{implementation_repository}}；从仓库 {{review_card_repository}} 根读取 {{review_card_path}}。执行模式为 {{execution_mode}}，资源档位为 {{resource_profile}}，速度策略为 {{speed_policy}}，{{task_stage_scope_and_start_condition}}。确认实际绑定和待审实现，在隔离工作区核对需求、差异与证据，执行验证并交付报告；不修改产品实现、不自行唤起其他会话，技术结论与所需用户确认、人类批准分开。
+你是 {{task_id}} 的{{review_type}} Reviewer，会话名称为「{{reviewer_session_name}}」，使用全新上下文。本会话必须按 provider={{reviewer_provider}}、model={{reviewer_model}}、reasoning_effort={{reviewer_reasoning_effort}}、service_tier={{reviewer_service_tier}} 创建，不得省略模型参数继承 Main。审查仓库是 {{implementation_repository}}；从仓库 {{review_card_repository}} 根读取 {{review_card_path}}。执行模式为 {{execution_mode}}，资源档位为 {{resource_profile}}，速度策略为 {{speed_policy}}，{{task_stage_scope_and_start_condition}}。确认实际绑定和待审实现，在隔离工作区核对需求、差异与证据，执行验证并交付报告；不修改产品实现、不自行唤起其他会话，技术结论与所需用户确认、人类批准分开。在仓库 {{reviewer_report_repository}} 的 {{reviewer_report_path}} 追加独占报告，通过 {{reviewer_report_delivery_channel}} 交付；含 round、UTC 时间、进展/阻塞/下一步、检查结果与仓库相对证据。只写自己报告，不假定文件共享，不写共享 state/view/panel 配置或调用 publish。
 ```
 
 ## {{worker_session_name}}：修复
@@ -59,7 +61,7 @@
 续接配置：保留该 Worker 已登记的 `provider={{worker_provider}}`、`model={{worker_model}}`、`reasoning_effort={{worker_reasoning_effort}}`、`service_tier={{worker_service_tier}}`；仅按卡片触发条件和上限升级。
 
 ```text
-继续「{{worker_session_name}}」处理 {{task_id}} 修复。实施仓库是 {{implementation_repository}}；从仓库 {{worker_card_repository}} 根读取 {{worker_card_path}} 及其本次审查报告。执行模式为 {{execution_mode}}，{{repair_phase_authority_and_stop}}。只修复本任务问题及必要回归，交付实现和测试证据后等待独立复审；不自行启动其他会话或宣布审查通过。
+继续「{{worker_session_name}}」处理 {{task_id}} 修复。实施仓库是 {{implementation_repository}}；从仓库 {{worker_card_repository}} 根读取 {{worker_card_path}} 及其本次审查报告。执行模式为 {{execution_mode}}，{{repair_phase_authority_and_stop}}。只修复本任务问题及必要回归，交付实现和测试证据后等待独立复审；不自行启动其他会话或宣布审查通过。在仓库 {{worker_report_repository}} 的 {{worker_report_path}} 按本次 round 和 UTC 时间追加修复进展、阻塞、结果与仓库相对证据，经 {{worker_report_delivery_channel}} 交付 Main；不假定文件共享，不写共享状态或调用 publish。
 ```
 
 ## {{reviewer_session_name}}：复审
@@ -69,7 +71,7 @@
 续接配置：保留该 Reviewer 已登记的 `provider={{reviewer_provider}}`、`model={{reviewer_model}}`、`reasoning_effort={{reviewer_reasoning_effort}}`、`service_tier={{reviewer_service_tier}}`；仅按卡片触发条件和上限升级。
 
 ```text
-继续「{{reviewer_session_name}}」复核 {{task_id}} 修复。审查仓库是 {{implementation_repository}}；从仓库 {{review_card_repository}} 根读取 {{review_card_path}}，确认修复对象与原始问题。执行模式为 {{execution_mode}}，{{rereview_phase_authority_and_stop}}。重跑定向验证及受影响回归并更新报告；不依据作者自述关闭问题，不修改实现，不自动唤起下一会话。
+继续「{{reviewer_session_name}}」复核 {{task_id}} 修复。审查仓库是 {{implementation_repository}}；从仓库 {{review_card_repository}} 根读取 {{review_card_path}}，确认修复对象与原始问题。执行模式为 {{execution_mode}}，{{rereview_phase_authority_and_stop}}。重跑定向验证及受影响回归并更新报告；不依据作者自述关闭问题，不修改实现，不自动唤起下一会话。在仓库 {{reviewer_report_repository}} 的 {{reviewer_report_path}} 按本次 round 和 UTC 时间追加复审进展、阻塞、结果与仓库相对证据，经 {{reviewer_report_delivery_channel}} 交付 Main；保留旧轮次结论，不假定文件共享，不写共享状态或调用 publish。
 ```
 
 ## {{main_session_name}}：集成
@@ -79,7 +81,7 @@
 续接配置：保留 Main 已登记的 `provider={{main_provider}}`、`model={{main_model}}`、`reasoning_effort={{main_reasoning_effort}}`、`service_tier={{main_service_tier}}`；仅按卡片触发条件和上限升级。
 
 ```text
-继续「{{main_session_name}}」执行 {{parent_task_id}} 集成。定位仓库 {{main_card_repository}}，从仓库根读取 {{main_card_path}}，核对全部所需实现、独立审查、人类批准和依赖证据。{{main_mode_integration_instruction_preserving_dispatch_and_stage_boundaries}} 组织已授权集成及回归，业务语义修复交回 Worker，分别报告实际验证、合并与交付状态，到卡片停止点结束。
+继续「{{main_session_name}}」执行 {{parent_task_id}} 集成。定位仓库 {{main_card_repository}}，从仓库根读取 {{main_card_path}}，核对全部所需实现、独立审查、人类批准和依赖证据。{{main_mode_integration_instruction_preserving_dispatch_and_stage_boundaries}} 组织已授权集成及回归，业务语义修复交回 Worker，分别报告实际验证、合并与交付状态，到卡片停止点结束。面板仓库 {{panel_repository}}，CLI {{panel_cli_path}}，状态 {{panel_state_path}}，HTML {{panel_html_path}}；核对证据后由你唯一 publish 更新，交付/审查/批准/任务完成分别记录；结束 export，核对成功响应的 seq、当前状态 seq 与离线 HTML 内嵌 seq 一致，再 stop 本包预览，保留历史。
 ```
 
 ## {{main_session_name}}：确认进入 {{next_stage_id}} {{next_stage_name}}
@@ -87,5 +89,5 @@
 仅半自动模式生成，逐个实例化每个后续阶段。启动者：用户；粘贴到原 Main。使用条件：上一阶段达到卡片退出条件，Main 已展示结果及本阶段范围，用户同意后发送。
 
 ```text
-确认「{{main_session_name}}」以半自动模式进入 {{next_stage_id}}「{{next_stage_name}}」。从仓库 {{main_card_repository}} 根读取 {{main_card_path}}，核对上一阶段的验收、独立审查和本阶段进入条件。授权在本阶段范围「{{next_stage_concrete_scope}}」内自动创建或续接名册中的会话并调度执行；完成本阶段后交付结果，在进入再下一阶段前等待我的明确确认，继续遵守卡片的权限和项目门禁。
+确认「{{main_session_name}}」以半自动模式进入 {{next_stage_id}}「{{next_stage_name}}」。从仓库 {{main_card_repository}} 根读取 {{main_card_path}}，核对上一阶段的验收、独立审查和本阶段进入条件。授权在本阶段范围「{{next_stage_concrete_scope}}」内自动创建或续接名册中的会话并调度执行；完成本阶段后交付结果，在进入再下一阶段前等待我的明确确认，继续遵守卡片的权限和项目门禁。面板仓库 {{panel_repository}}，CLI {{panel_cli_path}}，状态 {{panel_state_path}}，HTML {{panel_html_path}}；先 status 并核对真实批准证据，由 Main publish 登记本次批准及阶段状态，packet.set 仅改展示指针，不作为额外批准；继续关键事件更新与可执行等待时目标每 30 秒真实核对。
 ```

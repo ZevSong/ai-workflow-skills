@@ -1,0 +1,718 @@
+{
+  "packet": {
+    "id": "SIM-PANEL",
+    "title": "模拟 Fixture · 并行交付与独立审查",
+    "mode": "manual",
+    "run_number": 1,
+    "plan_revision": 1,
+    "lifecycle": "planned",
+    "stage_id": "S1",
+    "stop_condition": "模拟演示，无实际业务执行"
+  },
+  "source": {
+    "mode": "local",
+    "reference": {
+      "repository": "simulated-demo",
+      "path": "docs/task-packets/SIM-PANEL/runtime/state.json"
+    },
+    "available": true,
+    "checked_at": "2026-09-08T08:00:00Z"
+  },
+  "main": {
+    "logical_id": "SIM-MAIN",
+    "session_id": null,
+    "status": "planned",
+    "observed_at": null
+  },
+  "tasks": {
+    "DEMO-001": {
+      "id": "DEMO-001",
+      "title": "冻结任务契约",
+      "stage_id": "S1",
+      "status": "pending",
+      "round": 1,
+      "progress": "模拟：尚未开始",
+      "progress_at": null,
+      "blocker": null,
+      "next_action": "模拟：等待前置条件",
+      "session_ids": [
+        "DEMO-001-WORKER",
+        "DEMO-001-REVIEW-A",
+        "DEMO-001-REVIEW-B"
+      ],
+      "required_check_ids": [
+        "DEMO-001-DELIVERY",
+        "DEMO-001-REVIEW-A",
+        "DEMO-001-REVIEW-B"
+      ]
+    },
+    "DEMO-002": {
+      "id": "DEMO-002",
+      "title": "实现可离线查看的任务进展面板与长中文标题换行验证",
+      "stage_id": "S1",
+      "status": "pending",
+      "round": 1,
+      "progress": "模拟：尚未开始",
+      "progress_at": null,
+      "blocker": null,
+      "next_action": "模拟：等待前置条件",
+      "session_ids": [
+        "DEMO-002-WORKER",
+        "DEMO-002-REVIEW-A",
+        "DEMO-002-REVIEW-B"
+      ],
+      "required_check_ids": [
+        "DEMO-002-DELIVERY",
+        "DEMO-002-REVIEW-A",
+        "DEMO-002-REVIEW-B"
+      ]
+    },
+    "DEMO-003": {
+      "id": "DEMO-003",
+      "title": "独立验证并行分支",
+      "stage_id": "S1",
+      "status": "pending",
+      "round": 1,
+      "progress": "模拟：尚未开始",
+      "progress_at": null,
+      "blocker": null,
+      "next_action": "模拟：等待前置条件",
+      "session_ids": [
+        "DEMO-003-WORKER",
+        "DEMO-003-REVIEW-A",
+        "DEMO-003-REVIEW-B"
+      ],
+      "required_check_ids": [
+        "DEMO-003-DELIVERY",
+        "DEMO-003-REVIEW-A",
+        "DEMO-003-REVIEW-B"
+      ]
+    },
+    "DEMO-004": {
+      "id": "DEMO-004",
+      "title": "等待阶段批准后集成交付",
+      "stage_id": "S2",
+      "status": "pending",
+      "round": 1,
+      "progress": "模拟：尚未开始",
+      "progress_at": null,
+      "blocker": null,
+      "next_action": "模拟：等待前置条件",
+      "session_ids": [
+        "DEMO-004-WORKER",
+        "DEMO-004-REVIEW-A",
+        "DEMO-004-REVIEW-B"
+      ],
+      "required_check_ids": [
+        "DEMO-004-DELIVERY",
+        "DEMO-004-REVIEW-A",
+        "DEMO-004-REVIEW-B"
+      ]
+    },
+    "DEMO-005": {
+      "id": "DEMO-005",
+      "title": "执行最终验收",
+      "stage_id": "S2",
+      "status": "pending",
+      "round": 1,
+      "progress": "模拟：尚未开始",
+      "progress_at": null,
+      "blocker": null,
+      "next_action": "模拟：等待前置条件",
+      "session_ids": [
+        "DEMO-005-WORKER",
+        "DEMO-005-REVIEW-A",
+        "DEMO-005-REVIEW-B"
+      ],
+      "required_check_ids": [
+        "DEMO-005-DELIVERY",
+        "DEMO-005-REVIEW-A",
+        "DEMO-005-REVIEW-B"
+      ]
+    },
+    "DEMO-006": {
+      "id": "DEMO-006",
+      "title": "已取消的可选扩展",
+      "stage_id": "S2",
+      "status": "pending",
+      "round": 1,
+      "progress": "模拟：尚未开始",
+      "progress_at": null,
+      "blocker": null,
+      "next_action": "模拟：等待前置条件",
+      "session_ids": [
+        "DEMO-006-WORKER",
+        "DEMO-006-REVIEW-A",
+        "DEMO-006-REVIEW-B"
+      ],
+      "required_check_ids": [
+        "DEMO-006-DELIVERY",
+        "DEMO-006-REVIEW-A",
+        "DEMO-006-REVIEW-B"
+      ]
+    }
+  },
+  "sessions": {
+    "DEMO-001-WORKER": {
+      "task_id": "DEMO-001",
+      "role": "worker",
+      "planned_name": "模拟 DEMO-001 WORKER",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-001-REVIEW-A": {
+      "task_id": "DEMO-001",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-001 REVIEW-A",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-001-REVIEW-B": {
+      "task_id": "DEMO-001",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-001 REVIEW-B",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-002-WORKER": {
+      "task_id": "DEMO-002",
+      "role": "worker",
+      "planned_name": "模拟 DEMO-002 WORKER",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-002-REVIEW-A": {
+      "task_id": "DEMO-002",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-002 REVIEW-A",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-002-REVIEW-B": {
+      "task_id": "DEMO-002",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-002 REVIEW-B",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-003-WORKER": {
+      "task_id": "DEMO-003",
+      "role": "worker",
+      "planned_name": "模拟 DEMO-003 WORKER",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-003-REVIEW-A": {
+      "task_id": "DEMO-003",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-003 REVIEW-A",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-003-REVIEW-B": {
+      "task_id": "DEMO-003",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-003 REVIEW-B",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-004-WORKER": {
+      "task_id": "DEMO-004",
+      "role": "worker",
+      "planned_name": "模拟 DEMO-004 WORKER",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-004-REVIEW-A": {
+      "task_id": "DEMO-004",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-004 REVIEW-A",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-004-REVIEW-B": {
+      "task_id": "DEMO-004",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-004 REVIEW-B",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-005-WORKER": {
+      "task_id": "DEMO-005",
+      "role": "worker",
+      "planned_name": "模拟 DEMO-005 WORKER",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-005-REVIEW-A": {
+      "task_id": "DEMO-005",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-005 REVIEW-A",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-005-REVIEW-B": {
+      "task_id": "DEMO-005",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-005 REVIEW-B",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-006-WORKER": {
+      "task_id": "DEMO-006",
+      "role": "worker",
+      "planned_name": "模拟 DEMO-006 WORKER",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-006-REVIEW-A": {
+      "task_id": "DEMO-006",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-006 REVIEW-A",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    },
+    "DEMO-006-REVIEW-B": {
+      "task_id": "DEMO-006",
+      "role": "reviewer",
+      "planned_name": "模拟 DEMO-006 REVIEW-B",
+      "actual_name": null,
+      "actual_id": null,
+      "host_status": "planned",
+      "observed_at": null,
+      "round": 1,
+      "planned_model": {
+        "provider": "openai",
+        "model": "example-model",
+        "reasoning_effort": "medium",
+        "service_tier": "standard"
+      },
+      "actual_model": null,
+      "replaces": null
+    }
+  },
+  "stages": {
+    "S1": {
+      "title": "构建与审查",
+      "task_ids": [
+        "DEMO-001",
+        "DEMO-002",
+        "DEMO-003"
+      ],
+      "status": "pending",
+      "approved": false,
+      "approval_evidence_ids": []
+    },
+    "S2": {
+      "title": "批准与验收",
+      "task_ids": [
+        "DEMO-004",
+        "DEMO-005",
+        "DEMO-006"
+      ],
+      "status": "pending",
+      "approved": false,
+      "approval_evidence_ids": []
+    }
+  },
+  "checks": {
+    "DEMO-001-DELIVERY": {
+      "task_id": "DEMO-001",
+      "kind": "delivery",
+      "role_id": "DEMO-001-WORKER",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-001-REVIEW-A": {
+      "task_id": "DEMO-001",
+      "kind": "review",
+      "role_id": "DEMO-001-REVIEW-A",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-001-REVIEW-B": {
+      "task_id": "DEMO-001",
+      "kind": "review",
+      "role_id": "DEMO-001-REVIEW-B",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-002-DELIVERY": {
+      "task_id": "DEMO-002",
+      "kind": "delivery",
+      "role_id": "DEMO-002-WORKER",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-002-REVIEW-A": {
+      "task_id": "DEMO-002",
+      "kind": "review",
+      "role_id": "DEMO-002-REVIEW-A",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-002-REVIEW-B": {
+      "task_id": "DEMO-002",
+      "kind": "review",
+      "role_id": "DEMO-002-REVIEW-B",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-003-DELIVERY": {
+      "task_id": "DEMO-003",
+      "kind": "delivery",
+      "role_id": "DEMO-003-WORKER",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-003-REVIEW-A": {
+      "task_id": "DEMO-003",
+      "kind": "review",
+      "role_id": "DEMO-003-REVIEW-A",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-003-REVIEW-B": {
+      "task_id": "DEMO-003",
+      "kind": "review",
+      "role_id": "DEMO-003-REVIEW-B",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-004-DELIVERY": {
+      "task_id": "DEMO-004",
+      "kind": "delivery",
+      "role_id": "DEMO-004-WORKER",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-004-REVIEW-A": {
+      "task_id": "DEMO-004",
+      "kind": "review",
+      "role_id": "DEMO-004-REVIEW-A",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-004-REVIEW-B": {
+      "task_id": "DEMO-004",
+      "kind": "review",
+      "role_id": "DEMO-004-REVIEW-B",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-005-DELIVERY": {
+      "task_id": "DEMO-005",
+      "kind": "delivery",
+      "role_id": "DEMO-005-WORKER",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-005-REVIEW-A": {
+      "task_id": "DEMO-005",
+      "kind": "review",
+      "role_id": "DEMO-005-REVIEW-A",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-005-REVIEW-B": {
+      "task_id": "DEMO-005",
+      "kind": "review",
+      "role_id": "DEMO-005-REVIEW-B",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-006-DELIVERY": {
+      "task_id": "DEMO-006",
+      "kind": "delivery",
+      "role_id": "DEMO-006-WORKER",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-006-REVIEW-A": {
+      "task_id": "DEMO-006",
+      "kind": "review",
+      "role_id": "DEMO-006-REVIEW-A",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    },
+    "DEMO-006-REVIEW-B": {
+      "task_id": "DEMO-006",
+      "kind": "review",
+      "role_id": "DEMO-006-REVIEW-B",
+      "round": 1,
+      "applicable": true,
+      "result": "UNRUN",
+      "evidence_ids": [],
+      "not_applicable_reason": null
+    }
+  },
+  "evidence": {},
+  "dependencies": [
+    {
+      "from": "DEMO-001",
+      "to": "DEMO-002",
+      "required_check_ids": []
+    },
+    {
+      "from": "DEMO-001",
+      "to": "DEMO-003",
+      "required_check_ids": []
+    },
+    {
+      "from": "DEMO-002",
+      "to": "DEMO-004",
+      "required_check_ids": []
+    },
+    {
+      "from": "DEMO-003",
+      "to": "DEMO-004",
+      "required_check_ids": [
+        "DEMO-003-REVIEW-A",
+        "DEMO-003-REVIEW-B"
+      ]
+    },
+    {
+      "from": "DEMO-004",
+      "to": "DEMO-005",
+      "required_check_ids": []
+    }
+  ]
+}

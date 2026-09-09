@@ -47,6 +47,12 @@ docs/task-packets/<parent-task-id>/
   prompts.md
   workers/<task-id>.md
   reviews/<task-id>.md
+  progress-state-contract.md
+  dashboard/                 # 完整固定工具，含 panel_core/、resources/、README.md
+  dashboard/index.html       # init 生成的独立离线快照
+  runtime/plan.json          # 严格 planned 初始化输入
+  runtime/panel.json         # CLI 创建的来源配置
+  runtime/state.json         # 本地权威；projection 改为 view.json
 ```
 
 `packet.md`：需求来源与覆盖、子任务索引、具体会话名册、执行/资源/速度三个策略轴及选择来源、模型目录快照、逐会话绑定、会话执行流程图、依赖/并行批次、适用阶段门禁、跨仓合并顺序、材料分发和执行前置条件。不是第二个活跃看板；若项目使用 Issue 维护活动状态，这里只引用 Issue，写生成时的明确快照。
@@ -58,6 +64,12 @@ docs/task-packets/<parent-task-id>/
 可按项目既有目录组织，不强制新建第二套文档。跨仓任务可以将子卡存于各代码仓库的既有目录，父卡只使用仓库标识和相对路径引用；不要为了方便复制产生多份权威卡片。所有文件路径必须在生成前确定并写入索引。
 
 根据任务需要约定将来由执行者创建的报告位置，例如 `reports/<task-id>-handoff.md`、`reports/<task-id>-review.md`。生成阶段只登记位置，不生成看似已经执行的报告或虚假的 PASS。实现仓库与任务包仓库不同时，明确报告所属仓库及交付方式；不能让多个 Worker 同时写共享总卡或同一个报告。
+
+每个包必须按 [进度面板接入](progress-panel.md) 复制固定 dashboard 和 v1 契约、生成 plan 并执行 init/status，交付 planned HTML；生成阶段不启动服务或角色、不编写网页代码。总卡和 Main 卡登记实际的面板/CLI/状态/配置/计划/契约路径、来源模式与权威引用；Main 卡包含可独立恢复的操作与错误处理规则。Python 3.11+ 是面板工具依赖，离线 HTML 查看无需 Python。
+
+本地 source.reference 使用仓库标识与本包根相对路径，必须以 `runtime/state.json` 结束，便于工具限定包内证据。已有 Issue/YAML 权威使用 projection，view.json 与 HTML 仅是 Main 核对后的缓存，packet.md 仍是计划资料。所有实际 ID/模型/观察和证据在 planned 初始化保持空，检查各维度为 UNRUN；每任务分别登记非空 delivery、独立 review 及其他适用完成要求。
+
+为每个具体 Worker/Reviewer（包括第二 Reviewer）分别实例化唯一报告仓库/相对路径、任务 round 与已有交付渠道。报告含 UTC 来源时间、进度/里程碑、阻塞、下一步、对应维度结果和证据，按轮次追加保留旧结论。角色只写自己报告、不写共享 state/view/panel 配置或调用 publish；Main 通过既有材料交付方式核对，不假定工作区共享。Main 启动、恢复、集成、阶段确认及各角色修复/复审提示词均含对应具体入口。
 
 ## 会话命名与执行登记
 
@@ -131,6 +143,7 @@ Worker 提交后仍须处理本任务修复；闭环交接后可归档会话。�
 
 ## 生成后的检查
 
+- 核对固定工具及包内契约完整、init/status 实际成功、seq=0/planned、HTML 已生成、无实际会话或批准/执行证据、未启动服务；模型阻塞仍保留 MODEL_BINDING_BLOCKED。来源锚点与报告入口一致，投影不夺取原权威。已存在的状态保留而不重新 init，恢复与显式 run.start 重跑分开。
 - 每条需求映射到叶子任务和验收；每条任务前置依赖可理解、无循环，流程图的修复/复审回路单独检查。
 - 并行任务的文件与共享资源无写入冲突。
 - 每个 Worker 对应独立 Reviewer 卡；Main 的集成与恢复有入口。每个会话均有体现任务内容的唯一名称，名册、卡片、提示词和图一致，续接动作不冒充新会话。

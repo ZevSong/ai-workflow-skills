@@ -78,6 +78,18 @@ flowchart TD
 
 {{main_card_and_prompt_file_relative_links}}
 
+## 进度面板与报告
+
+- 离线 HTML：{{panel_html_relative_link_and_repository_path}}
+- CLI / 说明 / v1 契约：{{panel_cli_readme_and_contract_repository_paths}}
+- 来源模式与原权威引用：{{panel_source_mode_and_authority_reference}}
+- 状态、配置及初始计划路径：{{panel_state_config_plan_repository_paths}}
+- Main 是共享状态唯一写入者；报告仓库、每个角色独占文件和交付渠道：{{concrete_report_paths_and_delivery_channels}}
+
+生成阶段只复制固定资源、初始化 planned 数据与 HTML；不启动预览或业务会话。初始实际 ID/模型/观察值为空，检查为 UNRUN，无虚假批准。Main 启动后复用 planned 状态并登记真实身份；恢复延续原状态、运行轮次、历史和服务。projection 缓存保持原权威；面板不授予调度或批准权限。
+
+离线查看无需 Python；面板工具需要 Python 3.11+ 标准库。浏览器每 2 秒检查数据；Main 在关键事件后更新，可执行等待时目标每 30 秒实际核对，超过 120 秒未同步显示延迟；没有宿主观察时不会伪造心跳。
+
 ## 开始前需要具备的材料与环境
 
 {{known_prerequisites_distribution_to_other_machines_and_availability}}

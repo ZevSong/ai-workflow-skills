@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>任务包进展</title><style><!--PANEL_STYLES--></style></head>
+<body>
+<header class="page-header"><div class="eyebrow">TASK PACKET / 任务进展</div><h1 id="packet-title">任务包进展</h1><div id="packet-meta" class="muted"></div><div class="header-controls"><label>执行轮次 <select id="run-select"><option value="current">当前轮次</option></select></label><span id="history-label"></span><span id="connection" class="badge">读取快照</span></div></header>
+<main>
+<section aria-label="任务统计" id="counts" class="counts"></section>
+<section class="sync-strip" aria-label="同步状态"><div><strong id="freshness"></strong><div id="main-observed" class="muted"></div></div><div><div id="service-read" class="muted">最近读服务：尚未读取</div><div id="sync-error" role="status"></div></div></section>
+<div class="workspace"><div class="primary">
+<section class="card graph-card" aria-labelledby="graph-title"><div class="section-head"><div><h2 id="graph-title">执行流程</h2><p class="muted">依赖与批准条件 · 菱形表示门禁，不计入任务</p></div><div class="graph-tools"><label>显示 <select id="task-filter"><option value="all">全部任务</option><option value="active">实施 / 返修 / 验证</option><option value="review">独立审查</option><option value="waiting">等待确认 / 批准</option><option value="pending">未开始 / 就绪</option><option value="stage">当前阶段</option><option value="done">已完成</option><option value="blocked">受阻</option><option value="failed">失败</option></select></label><button id="zoom-out" aria-label="缩小任务图">−</button><output id="zoom-level">100%</output><button id="zoom-in" aria-label="放大任务图">+</button><button id="zoom-fit">适应画布</button><button id="zoom-reset">重置视图</button></div></div><div id="graph-scroll" tabindex="0" aria-label="任务图，拖动空白区域平移，也可滚动"><svg id="task-graph" role="group" aria-label="任务依赖图"><g id="graph-content"></g></svg></div><p id="graph-error" role="status"></p><div class="legend"><span>● 实施中</span><span>◆ 门禁</span><span>滚动查看全部任务 · − 缩小 · 鼠标拖动空白处平移</span></div></section>
+<section class="card" aria-labelledby="active-title"><div class="section-head"><h2 id="active-title">活跃会话</h2><span class="muted">宿主观察，非推测进展</span></div><div id="active-sessions"></div></section>
+<section class="card" aria-labelledby="list-title"><div class="section-head"><h2 id="list-title">全部任务</h2><span class="muted">图形不可用时仍可查看</span></div><div id="task-list"></div></section>
+</div><aside class="card detail-card" aria-labelledby="detail-title"><h2 id="detail-title">任务详情</h2><div id="task-detail"><p class="muted">从流程图或任务列表选择一个任务。</p></div></aside></div>
+<section class="card events-card" aria-labelledby="events-title"><div class="section-head"><h2 id="events-title">最近动态</h2><span class="muted">保留来源时间与接收时间</span></div><ol id="events"></ol></section>
+<footer>状态由 Main 提交与核对。交付、独立审查、完成分别记录；展示不授予执行或发布权限。<span id="source-reference"></span></footer>
+</main>
+<script id="panel-data" type="application/json"><!--PANEL_DATA--></script>
+<script><!--PANEL_SCRIPT--></script>
+</body></html>
